@@ -1,1 +1,3 @@
-# gor-purdue
+# GOR project
+
+The project aims to build a system ...blah blah...
