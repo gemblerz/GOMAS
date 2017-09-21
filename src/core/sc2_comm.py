@@ -31,7 +31,7 @@ class sc2(object):
         if self.is_connected:
             self.conn.close()
 
-    def send(self, **kargs):
+    def send(self, **kwargs):
         request = sc_pb.Request(**kwargs)
         request_str = request.SerializeToString()
         if self.is_connected:
