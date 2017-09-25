@@ -19,6 +19,8 @@ class sc2(object):
         self.conn = None
         self.is_connected = False
 
+        # self.log=open("log.txt","w")
+
     def open(self, address='127.0.0.1', port=5000):
         try:
             self.conn = websocket.create_connection("ws://%s:%s/sc2api" % (address, port), timeout=60)
@@ -41,4 +43,8 @@ class sc2(object):
     def read(self):
         response_str = self.conn.recv()
         response = sc_pb.Response()
-        return response.ParseFromString(response_str)
+        response.ParseFromString(response_str)
+        return response
+        #print(response,file=self.log)
+        #return
+

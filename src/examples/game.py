@@ -1,6 +1,9 @@
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
 from websocket import create_connection
+
+import sys
+sys.path.append('../core')
 from sc2_comm import sc2
 from core import Core
 
