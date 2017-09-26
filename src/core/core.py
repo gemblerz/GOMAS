@@ -8,7 +8,7 @@ import logging
 
 from sc2_comm import sc2
 
-FORMAT = '%(asctime)s %(levelname)s %(lineno)d %(message)s'
+FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 

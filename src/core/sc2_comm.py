@@ -9,7 +9,7 @@ import websocket
 
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
-FORMAT = '%(asctime)s %(levelname)s %(lineno)d %(message)s'
+FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
