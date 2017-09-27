@@ -1,8 +1,5 @@
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
-from s2clientprotocol import spatial_pb2 as spatial
-from s2clientprotocol import common_pb2 as common
-from websocket import create_connection
 
 import sys
 sys.path.append('../core')
@@ -20,7 +17,7 @@ test_client.init()
 
 map_info = sc_pb.LocalMap()
 #Windows
-# map_info.map_path = "C:\Program Files (x86)\StarCraft II\Maps\Melee\Simple128.SC2Map"
+#map_info.map_path = "C:\Program Files (x86)\StarCraft II\Maps\Melee\Simple128.SC2Map"
 #Mac
 map_info.map_path = "/Applications/StarCraft II/Maps/Melee/Simple128.SC2Map"
 create_game = sc_pb.RequestCreateGame(local_map = map_info)
