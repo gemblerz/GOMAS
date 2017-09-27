@@ -16,8 +16,10 @@ test_client.init()
 
 
 map_info = sc_pb.LocalMap()
-map_info.map_path = "C:\Program Files (x86)\StarCraft II\Maps\Melee\Simple128.SC2Map"
-
+#Windows
+# map_info.map_path = "C:\Program Files (x86)\StarCraft II\Maps\Melee\Simple128.SC2Map"
+#Mac
+# map_info.map_path = "/Applications/StarCraft II/Maps/Melee/Simple128.SC2Map"
 create_game = sc_pb.RequestCreateGame(local_map = map_info)
 create_game.player_setup.add(type=1)
 create_game.player_setup.add(type=2)
@@ -75,7 +77,7 @@ test_client.comm.send(action=action)
 
 """
 
-"""Army"""
+"""Move Units"""
 unit_tag_list=[]
 
 observation = sc_pb.RequestObservation()
