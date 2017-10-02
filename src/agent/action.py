@@ -4,22 +4,18 @@
     Actions can be performed under conditions and events
 """
 
+
+'''
+    Returns basic acitons of an agent
+'''
+def get_basic_actions():
+    actions = []
+    actions.append(Action(action_name='say', require={'words': 'string'}))
+    return actions
+
+
 class Action(object):
-    def __init__(self, actions):
-        self.action_set = {}
-        for action in actions:
-            self.action_set[action['id']] = {}
-            self.action_set['name'] = action['name']
-            self.action_set['require'] = action['require']
-
-    '''
-        Returns available actions based on the desires in the current situation
-    '''
-    def next_action(self, current_goal, current_knowledge):
-        # List up possible actions that can achieve the goal
-
-        # Select actions from the list of actions in terms of the current situation
-
-        # Return the most beneficial action from the selected actions
-        pass
-
+    def __init__(self, action_name, require={}, sc_action_id=9999):
+        self.__name__ = action_name
+        self.sc2_id = sc_action_id
+        self.require = require

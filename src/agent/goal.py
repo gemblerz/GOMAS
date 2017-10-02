@@ -7,7 +7,15 @@
 """
 
 class Goal(object):
-    def __init__(self):
-        self.goal = 
+    def __init__(self, initial_goals):
+        self.goals = initial_goals
 
-    def 
+    def get_goals(self):
+        # returns all available goals/sub-goals
+        return self.goals
+
+    def get_goal(self):
+        if len(self.goals) > 0:
+            return self.goal[0]
+        else:
+            return None
