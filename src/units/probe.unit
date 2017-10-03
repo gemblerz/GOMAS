@@ -1,0 +1,40 @@
+# yaml format
+
+- id: 84
+  name: probe
+  cargo_size: 1
+  attributes: light
+  attributes: mechanical
+  movement_speed: 2.8125
+  armor: 0.0
+  weapons:
+    - type: ground
+      damage: 5.0
+      attacks: 1
+      range: 0.10009765625
+      speed: 1.5
+  mineral_cost: 50
+  vespene_cost: 0
+  actions:
+    - id: 16
+      name: move
+      require:
+        - pos_x: int
+        - pos_y: int
+
+    - id: 97
+      name: gather
+      require:
+        - target: int
+
+    - id: 98
+      name: build
+      require:
+        - building: int #building ID
+        - location_x: int
+        - location_y: int
+
+    - id: 99
+      name: attack
+      require:
+        - target: int
