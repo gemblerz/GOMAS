@@ -5,6 +5,13 @@
 
 - [sc2client-proto](https://github.com/Blizzard/s2client-proto) By Blizzard
 
+- [protobuf](https://github.com/google/protobuf/releases) By google
+
+First of all, Install `protobuf` from the above link.
+If it sets successfully, you can check `protoc` compiler is on your machine. After that, download s2client-proto and also install it.
+you may do it with command `python setup.py install`.
+Now you can import `s2clientprotocol` python moudle everywhere.
+
 ## How To launch StarCraft II
 To develop and check repeatedly, we need to know how to launch StarCraft II application without login with an individual account. So, we are going to use SC2switcher which is in the Support folder.
 
