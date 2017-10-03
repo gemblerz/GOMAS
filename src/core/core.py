@@ -5,8 +5,10 @@
 """
 
 import logging
+import zmq
 
 from sc2_comm import sc2
+
 
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
