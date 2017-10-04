@@ -23,11 +23,20 @@ FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
+class MentalState(object):
+    '''
+        State machine
+            Idle: Agent performs nothing, no action needed
+            
+    '''
+    def __init__(self):
+        self.state = 
 
 class Agent(object):
     def __init__(self):
         self.discrete_time_step = 1 # sec
         self.alive = False
+        self.state = MentalState()
 
         self.actions = get_basic_actions()
         self.knowledge = []
@@ -206,7 +215,15 @@ if __name__ == '__main__':
             ('type2', 'i', 'say', ['my_name']),
             ],
         initial_goals=[
-            create_goal_set({'goal': 'say hello', 'require': [['say', {'words':'hello'}]]}),
+            create_goal_set(
+        {'goal': 'introduce myself',
+        'require': 
+            [['say', {'words':'hello'}],
+            {'goal': 'say hello',
+            'require':
+                [['say', {'words':'myname'}]]}
+            ]
+        }),
             ]
         )
     print('Agent is running...')

@@ -3,7 +3,10 @@
     This describes and stores (sub-)goals and their relationships
     Types,
         Conjunctive: achieving both sub goal A and B can attain the parent goal
-        Disjunctive: achieving more than one of the sub goals satisfies attainment of the parent goal  
+        Disjunctive: achieving more than one of the sub goals satisfies attainment of the parent goal
+
+    States of a goal
+        - 
 """
 
 '''
@@ -26,7 +29,7 @@ def create_goal_set(description_dict):
             if isinstance(dependent, list):  # Task
                 g.set_required_task(Task(dependent[0], dependent[1]))
             elif isinstance(dependent, dict): # Goal
-                pass
+                g.set_required_goal(create_goal_set(dependent))
             else:
                 pass
     else:
@@ -51,6 +54,9 @@ class Goal(object):
     def set_required_task(self, task):
         self.tasks.append(task)
 
+    def set_required_goal(self, goal):
+        self.dependents.append(goal)
+
     def get_tasks(self):
         return self.tasks
 
@@ -70,3 +76,14 @@ class Task(object):
 
     def set_arguments(arguments):
         self.arguments = arguments
+
+g = create_goal_set(
+        {'goal': 'introduce myself',
+        'require': 
+            [['say', {'words':'hello'}],
+            {'goal': 'say hello',
+            'require':
+                [['say', {'words':'myname'}]]}
+            ]
+        })
+print(g)
