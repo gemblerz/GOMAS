@@ -14,15 +14,27 @@
     Format:
         <<goal>>::<<goal_name>>
                   <<require>>
+                  <<trigger>>
+                  <<satisfy>>
                   <<precedent>>
         <<require>>::<<task>>
                      <<goal>>
-    example: {'goal': 'say hello', 'require': [['say', 'hello']]}
+        <<trigger>>::<<knowledge>>
+        <<satisfy>>::<<knowedlge>>
+    example: {
+        'goal': 'say hello',
+        'trigger': [],
+        'satisifes': 
+        'require': [['say', 'hello']]}
 '''
 def create_goal_set(description_dict):
     assert 'goal' in description_dict
 
     g = Goal(description_dict['goal'])
+    if 'trigger' in description_dict:
+        g.set_triggers(description_dict['trigger'])
+    if 'satisfies' in description_dict:
+        g.set_satisfies(description_dict['satisfies'])
     if 'require' in description_dict:
         dependents = description_dict['require']
         for dependent in dependents:
@@ -44,6 +56,8 @@ class Goal(object):
         self.name = goal_name
         self.tasks = []
         self.dependents = []
+        self.triggers = []
+        self.satisfies = []
 
     def __repr__(self):
         return '%s with %s tasks and %s dependents' % (self.name, self.tasks, self.dependents)
@@ -57,8 +71,17 @@ class Goal(object):
     def set_required_goal(self, goal):
         self.dependents.append(goal)
 
+    def set_triggers(self, triggers):
+        self.triggers = triggers
+
+    def set_satisfies(self, satisfies):
+        self.satisfies = satisfies
+
     def get_tasks(self):
         return self.tasks
+
+    def get_available_tasks(self):
+        
 
     def get_goal(self):
         if len(self.goals) > 0:
@@ -76,14 +99,3 @@ class Task(object):
 
     def set_arguments(arguments):
         self.arguments = arguments
-
-g = create_goal_set(
-        {'goal': 'introduce myself',
-        'require': 
-            [['say', {'words':'hello'}],
-            {'goal': 'say hello',
-            'require':
-                [['say', {'words':'myname'}]]}
-            ]
-        })
-print(g)

@@ -30,7 +30,7 @@ class MentalState(object):
             
     '''
     def __init__(self):
-        self.state = 
+        self.state = 'idle'
 
 class Agent(object):
     def __init__(self):
@@ -49,8 +49,11 @@ class Agent(object):
     def _load_goals(self, goals):
         self.goals = goals
 
-    def spawn(self, unit_id, initial_knowledge=[], initial_goals=[]):
+    def spawn(self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
         assert unit_id in units
+
+        # Identifier for the unit
+        self.spawn_id = spawn_id
 
         # Load basic characteristics of the unit
         self.load_unit(units[unit_id])
@@ -111,6 +114,12 @@ class Agent(object):
         self.deinit_comm_env()
         self.deinit_comm_agents()
         self.alive = False
+
+    '''
+        Sense information from its surroundings and other agents
+    '''
+    def perceive(self):
+
 
     '''
         Information / actions going to simulator
@@ -181,7 +190,7 @@ class Agent(object):
             #     self.answer(query)
 
             # Perceive environment
-            # self.perceive()
+            self.perceive()
 
             # Reason next action
             selected_action, selected_goal = self.next_action(self.goals, self.knowledge)
