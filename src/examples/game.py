@@ -1,5 +1,6 @@
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
+from s2clientprotocol import score_pb2 as score_pb
 
 import sys
 sys.path.append('../core')
@@ -32,7 +33,7 @@ print(test_client.comm.send(create_game = create_game))
 """Join Game"""
 #Make Requst(JoinGame)
 
-interface_options = sc_pb.InterfaceOptions(raw = True, score = False)
+interface_options = sc_pb.InterfaceOptions(raw = True, score = True)
 join_game = sc_pb.RequestJoinGame(race = 3, options = interface_options)
 
 #send Request
@@ -78,6 +79,8 @@ test_client.comm.send(action=action)
 """
 
 """Move Units"""
+
+"""
 unit_tag_list=[]
 
 observation = sc_pb.RequestObservation()
@@ -98,5 +101,42 @@ action_raw = raw_pb.ActionRaw(unit_command = unit_command)
 action = sc_pb.RequestAction()
 action.actions.add(action_raw = action_raw)
 test_client.comm.send(action=action)
+
+#conn.close()
+
+"""
+
+"""Gather Mules"""
+unit_tag_list=[]
+observation = sc_pb.RequestObservation()
+t=test_client.comm.send(observation=observation)
+
+for unit in t.observation.observation.raw_data.units:
+    if unit.unit_type == 84: # Probe unit_type_tag
+        unit_tag_list.append(unit.tag)
+
+unit_command = raw_pb.ActionRawUnitCommand()
+unit_command.ability_id = 166 # Gather Mule
+action_raw = raw_pb.ActionRaw(unit_command = unit_command)
+while True:
+    action = sc_pb.RequestAction()
+    action.actions.add(action_raw=action_raw)
+    test_client.comm.send(action=action)
+    get_mineral = test_client.comm.send(observation=observation)
+    mineral = get_mineral.observation.observation.score.score_details.collected_minerals
+    print(mineral)
+    if mineral >= 200:
+        break
+
+print ("Stop")
+unit_command.ability_id = 4 # Move Ability
+
+for i in range(0,12):
+    unit_command.unit_tags.append(unit_tag_list[i])
+action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+action = sc_pb.RequestAction()
+action.actions.add(action_raw=action_raw)
+test_client.comm.send(action=action)
+
 
 #conn.close()
