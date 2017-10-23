@@ -118,21 +118,30 @@ for unit in t.observation.observation.raw_data.units:
 unit_command = raw_pb.ActionRawUnitCommand()
 unit_command.ability_id = 166 # Gather Mule
 action_raw = raw_pb.ActionRaw(unit_command = unit_command)
+
+#12 units keep gettering mules until minerals are over 200
 while True:
+
+    #Ask keep going gether minerals
     action = sc_pb.RequestAction()
     action.actions.add(action_raw=action_raw)
     test_client.comm.send(action=action)
+
+    #request information about collected_minerals
     get_mineral = test_client.comm.send(observation=observation)
-    mineral = get_mineral.observation.observation.score.score_details.collected_minerals
-    print(mineral)
-    if mineral >= 200:
+    collected_minerals = get_mineral.observation.observation.score.score_details.collected_minerals
+    print(collected_minerals)
+
+    #if collected_minerals are over 200, all units is stop
+    if collected_minerals >= 200:
         break
 
 print ("Stop")
-unit_command.ability_id = 4 # Move Ability
+unit_command.ability_id = 4 # Stop Ability
 
 for i in range(0,12):
     unit_command.unit_tags.append(unit_tag_list[i])
+
 action_raw = raw_pb.ActionRaw(unit_command=unit_command)
 action = sc_pb.RequestAction()
 action.actions.add(action_raw=action_raw)
