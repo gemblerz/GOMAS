@@ -27,7 +27,7 @@ class MentalState(object):
     '''
         State machine
             Idle: Agent performs nothing, no action needed
-            
+
     '''
     def __init__(self):
         self.state = 'idle'
@@ -49,7 +49,7 @@ class Agent(object):
     def _load_goals(self, goals):
         self.goals = goals
 
-    def spawn(self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
+    def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
         assert unit_id in units
 
         # Identifier for the unit
@@ -119,7 +119,7 @@ class Agent(object):
         Sense information from its surroundings and other agents
     '''
     def perceive(self):
-
+        pass
 
     '''
         Information / actions going to simulator
@@ -161,8 +161,10 @@ class Agent(object):
             return None, None
 
         # TODO: all the goals may need to be examined
-        g = current_goal.pop()
+
+        g = current_goal.pop() #list에는 더 이상 존재하지 않음...ㅜ.ㅜ pop보다는 그냥 refernce
         logger.info('current goal is %s' % (g,))
+        #g.goal_state = 'Active'
 
         # List up possible actions that can achieve the goal
         # If the agent knows how to attain the goal
@@ -170,6 +172,7 @@ class Agent(object):
             action = self._has_action_for_task(task)
             if action is not None:
                 list_actions.append(action)
+                g.goal_state = 'Assigned'
 
         # Select actions from the list of actions in terms of the current situation
         return_action = list_actions[0]
@@ -192,14 +195,27 @@ class Agent(object):
             # Perceive environment
             self.perceive()
 
+            for goal in self.goals:
+                if goal.name == 'introduce myself':
+                    print(goal.goal_state)
+
             # Reason next action
             selected_action, selected_goal = self.next_action(self.goals, self.knowledge)
 
+
             # Perform the action
             if selected_action is not None:
+                #if : check the start condition(assinged? available? ) -> check goal instance in knowledge base
+                selected_goal.goal_state = 'Active'
+                print(selected_goal.goal_state) #Active
                 if not self.act(selected_action):
                     # Action failed, put the goal back to the queue
-                    self.goals.append(selected_goal)
+                    selecte_goal.goal_state = 'Failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
+                    #self.goals.append(selected_goal) 일단은 append하지 말고 그냥 failed로 둡시다..... available한 goal로 그냥 두기
+                else:#제일 위로가야한다고 생각/ 주변환경을 물어보고 end condition을 만족했을 때, goal 중 완성된 것이 있나 확인 한 후 achieve로 바꿔줌
+                    #act하고 다시 run할 때 생각
+                    selected_goal.goal_state = 'Achived'
+                    print(selected_goal.goal_state)
 
             # May need to tell others the action that is about to be performed
             # self.tell('%d performs %s' % (self.id, action))
@@ -218,7 +234,7 @@ class Agent(object):
 '''
 if __name__ == '__main__':
     probe = Agent()
-    probe.spawn(84,
+    probe.spawn(1,84,
         initial_knowledge=[
             ('type1', 'my_name', ['probe']),
             ('type2', 'i', 'say', ['my_name']),
@@ -226,7 +242,7 @@ if __name__ == '__main__':
         initial_goals=[
             create_goal_set(
         {'goal': 'introduce myself',
-        'require': 
+        'require':
             [['say', {'words':'hello'}],
             {'goal': 'say hello',
             'require':

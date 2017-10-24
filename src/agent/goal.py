@@ -6,7 +6,7 @@
         Disjunctive: achieving more than one of the sub goals satisfies attainment of the parent goal
 
     States of a goal
-        - 
+        -
 """
 
 '''
@@ -24,7 +24,7 @@
     example: {
         'goal': 'say hello',
         'trigger': [],
-        'satisifes': 
+        'satisifes':
         'require': [['say', 'hello']]}
 '''
 def create_goal_set(description_dict):
@@ -47,6 +47,7 @@ def create_goal_set(description_dict):
     else:
         # A goal with no tasks that satisfy it
         return None
+
     return g
 
 
@@ -58,11 +59,12 @@ class Goal(object):
         self.dependents = []
         self.triggers = []
         self.satisfies = []
+        self.goal_state = 'None'
 
     def __repr__(self):
         return '%s with %s tasks and %s dependents' % (self.name, self.tasks, self.dependents)
 
-    def set_goal_name(goal_name):
+    def set_goal_name(self, goal_name):
         self.name = goal_name
 
     def set_required_task(self, task):
@@ -81,7 +83,7 @@ class Goal(object):
         return self.tasks
 
     def get_available_tasks(self):
-        
+        return
 
     def get_goal(self):
         if len(self.goals) > 0:
@@ -97,5 +99,5 @@ class Task(object):
     def __repr__(self):
         return '[Task \'%s\' with \'%s\']' % (self.__name__, self.arguments)
 
-    def set_arguments(arguments):
+    def set_arguments(self, arguments):
         self.arguments = arguments
