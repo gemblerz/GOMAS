@@ -16,25 +16,49 @@
   mineral_cost: 50
   vespene_cost: 0
   actions:
+    - id: 4
+      name: stop
+      require:
+        - target: none
+
     - id: 16
       name: move
       require:
+        - target: pointorunit
         - pos_x: int
         - pos_y: int
 
-    - id: 97
-      name: gather
+    #gather is consist of MULEgater and MULEreturn    
+    - id: 166
+      name: mulegather #gather MULE
       require:
-        - target: int
+        - target: unit
+                : int #unit ID
 
-    - id: 98
-      name: build
+    - id: 167
+      name: mulegather #return MULE
       require:
+        - target: none
+    
+    #attack can be seperated attack units and attack towers
+    - id: 23
+      name: attack #attack unit
+      require:
+        - target: pointorunit
+                : int #unit ID
+
+    - id: 24
+      name: attack #attack towers
+      require:
+        - target: point
+                : int #building ID
+
+    #according to building ID, action id id diff(880~910)
+    - id: 880 
+      name: protossbuild
+      require:
+        - target: point
         - building: int #building ID
         - location_x: int
         - location_y: int
 
-    - id: 99
-      name: attack
-      require:
-        - target: int
