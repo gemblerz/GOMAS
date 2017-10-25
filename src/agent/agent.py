@@ -14,10 +14,12 @@ import time
 import logging
 sys.path.append('../')
 from units import units
+from utils.communicator import Communicator
 
 from action import Action, get_basic_actions
 from knowledge_base import Knowledge
 from goal import Goal, create_goal_set
+
 
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -100,11 +102,11 @@ class Agent(object):
         Communication to other agents
     '''
     def init_comm_agents(self):
-        pass
+        self.comm_agents = Communicator(self.id)
 
     def deinit_comm_agents(self):
         # It may need to send 'good bye' to others
-        pass
+        self.comm_agents.close()
 
     '''
         Destroy myself
@@ -119,21 +121,33 @@ class Agent(object):
         Sense information from its surroundings and other agents
     '''
     def perceive(self):
-        pass
+        # Perceive from the environment (i.e., SC2)
+
+        # Perceive from other agents
+        message = self.comm_agents.read()
+        if message:
+            # Put the message into knowledge base
+            #self.knowledge
+            pass
 
     '''
         Information / actions going to simulator
     '''
     def act(self, action):
         logger.info('%s is performing %s' % (self.name, action))
-        action.perform()
+        if action.__name__ == 'say':
+            words = action.require['words']
+            self.tell(words, 'dummy')
+        else:
+            action.perform()
         return True
 
     '''
         Delivering information to other agents
     '''
-    def tell(self, statement):
-        pass
+    def tell(self, statement, who):
+        logger.info('I am telling %s to %s' % (statement, who))
+        self.comm_agents.send(who, statement)
 
     '''
         Query to other agents
@@ -161,24 +175,30 @@ class Agent(object):
             return None, None
 
         # TODO: all the goals may need to be examined
+        for goal in current_goal:
+            tasks = goal.get_available_tasks()
+            for task in tasks:
+                action = self._has_action_for_task(task)
+                if action is not None:
+                    list_actions.append((action, goal))
 
-        g = current_goal.pop() #list에는 더 이상 존재하지 않음...ㅜ.ㅜ pop보다는 그냥 refernce
-        logger.info('current goal is %s' % (g,))
-        #g.goal_state = 'Active'
+        # g = current_goal.pop() #list에는 더 이상 존재하지 않음...ㅜ.ㅜ pop보다는 그냥 refernce
+        # logger.info('current goal is %s' % (g,))
+        # #g.goal_state = 'Active'
 
-        # List up possible actions that can achieve the goal
-        # If the agent knows how to attain the goal
-        for task in g.get_tasks():
-            action = self._has_action_for_task(task)
-            if action is not None:
-                list_actions.append(action)
-                g.goal_state = 'Assigned'
+        # # List up possible actions that can achieve the goal
+        # # If the agent knows how to attain the goal
+        # for task in g.get_tasks():
+        #     action = self._has_action_for_task(task)
+        #     if action is not None:
+        #         list_actions.append(action)
+        #         g.goal_state = 'Assigned'
 
         # Select actions from the list of actions in terms of the current situation
         return_action = list_actions[0]
 
         # Return the most beneficial action from the selected actions
-        return return_action, g
+        return return_action
 
     '''
         Main logic runs here (i.e., reasoning)

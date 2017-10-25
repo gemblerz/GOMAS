@@ -6,8 +6,24 @@
         Disjunctive: achieving more than one of the sub goals satisfies attainment of the parent goal
 
     States of a goal
-        -
+-----------------------------------------------------
+STATE        | TRIGGER                  | NEXT_STATE
+=====================================================
+NOT_ASSIGNED | more than one agent      | ASSIGNED
+             | is assigned              |
+-----------------------------------------------------
+ASSIGNED     | start conditions are met | ACTIVE
+-----------------------------------------------------
+ACTIVE       | end conditions are met   | ACHIEVED
+             | ????                     | FAILED
+-----------------------------------------------------
+
 """
+GOAL_STATE_NOT_ASSIGNED = 'not_assigned'
+GOAL_STATE_ASSIGNED = 'assigned'
+GOAL_STATE_ACTIVE = 'active'
+GOAL_STATE_ACHIEVED = 'achieved'
+GOAL_STATE_FAILED = 'failed'
 
 '''
     Create a goal from a given description
@@ -51,7 +67,6 @@ def create_goal_set(description_dict):
     return g
 
 
-
 class Goal(object):
     def __init__(self, goal_name=''):
         self.name = goal_name
@@ -59,10 +74,18 @@ class Goal(object):
         self.dependents = []
         self.triggers = []
         self.satisfies = []
-        self.goal_state = 'None'
+        self.goal_state = GOAL_STATE_NOT_ASSIGNED
 
     def __repr__(self):
         return '%s with %s tasks and %s dependents' % (self.name, self.tasks, self.dependents)
+
+    def _get_leaf_tasks(self):
+        if len(self.dependents) == 0:
+            return self.tasks
+        else:
+            for dependent in self.dependents:
+                if dependent.goal_state != GOAL_STATE_ACHIEVED or dependent.goal_state != GOAL_STATE_FAILED:
+                    return dependent._get_leaf_tasks()
 
     def set_goal_name(self, goal_name):
         self.name = goal_name
@@ -83,7 +106,8 @@ class Goal(object):
         return self.tasks
 
     def get_available_tasks(self):
-        return
+        tasks = self._get_leaf_tasks()
+        return tasks
 
     def get_goal(self):
         if len(self.goals) > 0:

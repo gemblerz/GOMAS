@@ -33,7 +33,6 @@
       name: mulegather #gather MULE
       require:
         - target: unit
-                : int #unit ID
 
     - id: 167
       name: mulegather #return MULE
@@ -45,13 +44,11 @@
       name: attack #attack unit
       require:
         - target: pointorunit
-                : int #unit ID
 
     - id: 24
       name: attack #attack towers
       require:
         - target: point
-                : int #building ID
 
     #according to building ID, action id id diff(880~910)
     - id: 880 
