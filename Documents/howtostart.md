@@ -1,11 +1,11 @@
 # How to Start
 
 ## Need to download and install
-- [StarCraft II](https://us.battle.net/account/download/?show=sc2&starter=sc2)
+- [StarCraft II](https://us.battle.net/account/download/?show=sc2&starter=sc2) (ver Starter patched 3.18.0)
 
-- [sc2client-proto](https://github.com/Blizzard/s2client-proto) By Blizzard
+- [sc2client-proto](https://github.com/Blizzard/s2client-proto) By Blizzard (ver 1.0)
 
-- [protobuf](https://github.com/google/protobuf/releases) By google
+- [protobuf](https://github.com/google/protobuf/releases) By google (ver 3.4.0)
 
 First of all, Install `protobuf` from the above link.
 If it sets successfully, you can check `protoc` compiler is on your machine. After that, download s2client-proto and also install it.
