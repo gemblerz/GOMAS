@@ -11,7 +11,7 @@
 def get_basic_actions():
     actions = []
     code = '''
-print(words)
+self.tell(words)
     '''
     actions.append(Action(action_name='say', actual_code=code, require={'words': 'string'}))
     return actions
