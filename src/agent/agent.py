@@ -125,6 +125,8 @@ class Agent(object):
 
         # Perceive from other agents
         message = self.comm_agents.read()
+        print("Message from dummy:" + message)
+        print(message)
         if message:
             # Put the message into knowledge base
             #self.knowledge
@@ -137,7 +139,7 @@ class Agent(object):
         logger.info('%s is performing %s' % (self.name, action))
         if action.__name__ == 'say':
             words = action.require['words']
-            self.tell(words, 'dummy')
+            self.tell(words, "100")
         else:
             action.perform()
         return True
@@ -147,6 +149,7 @@ class Agent(object):
     '''
     def tell(self, statement, who):
         logger.info('I am telling %s to %s' % (statement, who))
+        print("The Agent is telling to dummy")
         self.comm_agents.send(who, statement)
 
     '''
