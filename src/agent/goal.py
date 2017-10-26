@@ -36,11 +36,11 @@ GOAL_STATE_FAILED = 'failed'
         <<require>>::<<task>>
                      <<goal>>
         <<trigger>>::<<knowledge>>
-        <<satisfy>>::<<knowedlge>>
+        <<satisfy>>::<<knowledge>>
     example: {
         'goal': 'say hello',
         'trigger': [],
-        'satisifes':
+        'satisfy':
         'require': [['say', 'hello']]}
 '''
 def create_goal_set(description_dict):
@@ -110,9 +110,10 @@ class Goal(object):
         tasks = self._get_leaf_tasks()
         return tasks
 
+    # Modified self.goals -> self.dependents
     def get_goal(self):
-        if len(self.goals) > 0:
-            return self.goal[0]
+        if len(self.dependents) > 0:
+            return self.dependents[0]
         else:
             return None
 
