@@ -84,8 +84,9 @@ class Goal(object):
             return self.tasks
         else:
             for dependent in self.dependents:
-                if dependent.goal_state != GOAL_STATE_ACHIEVED or dependent.goal_state != GOAL_STATE_FAILED:
+                if dependent.goal_state != GOAL_STATE_ACHIEVED and dependent.goal_state != GOAL_STATE_FAILED:
                     return dependent._get_leaf_tasks()
+            return self.tasks
 
     def set_goal_name(self, goal_name):
         self.name = goal_name

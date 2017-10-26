@@ -2,9 +2,9 @@
     Knowledge base class
     This stores statements formed from observations/communications
     Atomic forms are
-        type1: none, none/adjective                e.g., (apple, red)
-        type2: none, verb [objective]              e.g., (probe, gather, the mineral)
-        type3: verb, (none/verb none/adjective)    e.g., (attack, (target, hurt)), (attack, (drain, my_energy))
+        type1: noun, noun/adjective                e.g., (apple, red)
+        type2: noun, verb [objective]              e.g., (probe, gather, the mineral)
+        type3: verb, (noun/verb noun/adjective)    e.g., (attack, (target, hurt)), (attack, (drain, my_energy))
 """
 
 class Knowledge(object):

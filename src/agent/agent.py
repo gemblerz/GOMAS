@@ -226,16 +226,16 @@ class Agent(object):
             # Perform the action
             if selected_action is not None:
                 #if : check the start condition(assinged? available? ) -> check goal instance in knowledge base
-                selected_goal.goal_state = 'Active'
+                selected_goal.goal_state = 'active'
                 print(selected_goal.goal_state) #Active
                 if not self.act(selected_action):
                     # Action failed, put the goal back to the queue
-                    selecte_goal.goal_state = 'Failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
+                    selected_goal.goal_state = 'failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
                     #self.goals.append(selected_goal) 일단은 append하지 말고 그냥 failed로 둡시다..... available한 goal로 그냥 두기
                 else:#제일 위로가야한다고 생각/ 주변환경을 물어보고 end condition을 만족했을 때, goal 중 완성된 것이 있나 확인 한 후 achieve로 바꿔줌
                     #act하고 다시 run할 때 생각
-                    selected_goal.goal_state = 'Achived'
-                    print(selected_goal.goal_state)
+                    #TODO : selected_goal should be leaf goal that act selected_action...?
+                    selected_goal.goal_state = 'achieved'
 
             # May need to tell others the action that is about to be performed
             # self.tell('%d performs %s' % (self.id, action))
