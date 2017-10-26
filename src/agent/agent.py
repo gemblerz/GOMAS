@@ -177,13 +177,10 @@ class Agent(object):
         # TODO: all the goals may need to be examined
         for goal in current_goal:
             tasks = goal.get_available_tasks()
-            if len(tasks) != 0:
-                goal.goal_state = 'assigned'
             for task in tasks:
-                if task.state == 'Ready':
-                    action = self._has_action_for_task(task)
-                    if action is not None:
-                        list_actions.append((action, task))
+                action = self._has_action_for_task(task)
+                if action is not None:
+                    list_actions.append((action, goal))
 
         # g = current_goal.pop() #list에는 더 이상 존재하지 않음...ㅜ.ㅜ pop보다는 그냥 refernce
         # logger.info('current goal is %s' % (g,))
@@ -197,11 +194,9 @@ class Agent(object):
         #         list_actions.append(action)
         #         g.goal_state = 'Assigned'
 
-        # Select actions from the list of actions in terms of the current
-        if len(list_actions) == 0:
-            return None, None
-
+        # Select actions from the list of actions in terms of the current situation
         return_action = list_actions[0]
+
         # Return the most beneficial action from the selected actions
         return return_action
 
@@ -212,7 +207,6 @@ class Agent(object):
         while self.alive:
             # For debugging
             logger.info('%s is ticking' % (self.name,))
-            print()
             # Check if something to answer
             # query = self.check_being_asked():
             # if query:
@@ -223,33 +217,26 @@ class Agent(object):
 
             for goal in self.goals:
                 if goal.name == 'introduce myself':
-                    print('>>', goal.name, 'is', goal.goal_state)
-
-            #check every goal whether now achieved.
-            for goal in self.goals:
-                print('>> Start checking goal tree... root goal is', goal.name)
-                goal.can_be_achieved()
+                    print(goal.goal_state)
 
             # Reason next action
-            selected_action, selected_task = self.next_action(self.goals, self.knowledge)
+            selected_action, selected_goal = self.next_action(self.goals, self.knowledge)
+
 
             # Perform the action
             if selected_action is not None:
                 #if : check the start condition(assinged? available? ) -> check goal instance in knowledge base
-                #selected_goal.goal_state = 'active'
-                print('>> Now tring to do %s' % (selected_action)) #Active
+                selected_goal.goal_state = 'Active'
+                print(selected_goal.goal_state) #Active
                 if not self.act(selected_action):
                     # Action failed, put the goal back to the queue
-                    selected_task.state = 'failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
+                    selected_goal.goal_state = 'Failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
                     #self.goals.append(selected_goal) 일단은 append하지 말고 그냥 failed로 둡시다..... available한 goal로 그냥 두기
                 else:#제일 위로가야한다고 생각/ 주변환경을 물어보고 end condition을 만족했을 때, goal 중 완성된 것이 있나 확인 한 후 achieve로 바꿔줌
                     #act하고 다시 run할 때 생각
-                    #TODO : selected_goal should be leaf goal that act selected_action...?
-                    selected_task.state = 'Done'
-                    print('>>', selected_task.__name__, 'is Done')
+                    selected_goal.goal_state = 'Achived'
+                    print(selected_goal.goal_state)
 
-            else:
-                break
             # May need to tell others the action that is about to be performed
             # self.tell('%d performs %s' % (self.id, action))
             # Or
@@ -266,30 +253,23 @@ class Agent(object):
     For testing
 '''
 if __name__ == '__main__':
-
-    goal = {'goal': 'introduce myself',
-            'require': [
-                ['say', {'words': 'hello'}],
-                {'goal': 'say hello',
-                 'require': [
-                     ['say', {'words': 'myname'}],
-                     ['say', {'words': 'hehe'}],
-                     {'goal': 'say hajime',
-                      'require': [
-                          ['say', {'words': 'hajime'}]
-                      ]}
-                 ]
-                 }
-            ]
-            }
-
     probe = Agent()
     probe.spawn(1,84,
         initial_knowledge=[
             ('type1', 'my_name', ['probe']),
             ('type2', 'i', 'say', ['my_name']),
             ],
-        initial_goals=[create_goal_set(goal)]
+        initial_goals=[
+            create_goal_set(
+        {'goal': 'introduce myself',
+        'require':
+            [['say', {'words':'hello'}],
+            {'goal': 'say hello',
+            'require':
+                [['say', {'words':'myname'}]]}
+            ]
+        }),
+            ]
         )
     print('Agent is running...')
     try:
