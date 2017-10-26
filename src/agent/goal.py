@@ -36,11 +36,11 @@ GOAL_STATE_FAILED = 'failed'
         <<require>>::<<task>>
                      <<goal>>
         <<trigger>>::<<knowledge>>
-        <<satisfy>>::<<knowedlge>>
+        <<satisfy>>::<<knowledge>>
     example: {
         'goal': 'say hello',
         'trigger': [],
-        'satisifes':
+        'satisfies':
         'require': [['say', 'hello']]}
 '''
 def create_goal_set(description_dict):
