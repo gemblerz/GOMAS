@@ -129,8 +129,8 @@ class Goal(object):
         return tasks
 
     def get_goal(self):
-        if len(self.goals) > 0:
-            return self.goal[0]
+        if len(self.subgoals) > 0:
+            return self.subgoals[0]
         else:
             return None
 

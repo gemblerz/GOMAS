@@ -24,7 +24,7 @@ class GoalModelTest(unittest.TestCase):
         expected_result = Task('say', {'words':'hajime'})
         self.assertEqual(expected_result.arguments, result[0].arguments)
 
-    # test the get_goal() function which returns its first subgoals(dependents[0]).
+    # test the get_goal() function which returns its first subgoals(subgoals[0]).
     def test_get_goal(self):
         goal = {'goal': 'introduce myself',
              'require': [
