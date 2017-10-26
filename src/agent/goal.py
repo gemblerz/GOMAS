@@ -40,7 +40,7 @@ GOAL_STATE_FAILED = 'failed'
     example: {
         'goal': 'say hello',
         'trigger': [],
-        'satisfy':
+        'satisfies':
         'require': [['say', 'hello']]}
 '''
 def create_goal_set(description_dict):
@@ -71,22 +71,40 @@ class Goal(object):
     def __init__(self, goal_name=''):
         self.name = goal_name
         self.tasks = []
-        self.dependents = []
+        self.subgoals = []
         self.triggers = []
         self.satisfies = []
         self.goal_state = GOAL_STATE_NOT_ASSIGNED
 
     def __repr__(self):
-        return '%s with %s tasks and %s dependents' % (self.name, self.tasks, self.dependents)
+        return '%s with %s tasks and %s dependents' % (self.name, self.tasks, self.subgoals)
 
     def _get_leaf_tasks(self):
-        if len(self.dependents) == 0:
+        if len(self.subgoals) == 0:
             return self.tasks
         else:
-            for dependent in self.dependents:
-                if dependent.goal_state != GOAL_STATE_ACHIEVED and dependent.goal_state != GOAL_STATE_FAILED:
-                    return dependent._get_leaf_tasks()
+            for subgoal in self.subgoals:
+                if subgoal.goal_state != GOAL_STATE_ACHIEVED and subgoal.goal_state != GOAL_STATE_FAILED:
+                    return subgoal._get_leaf_tasks()
             return self.tasks
+
+    def can_be_achieved(self):
+
+        #check subgoals
+        for subgoal in self.subgoals:
+            if not subgoal.can_be_achieved():
+                print('>>', self.name, 'CAN NOT be achieved yet')
+                return False
+
+        #check task
+        for task in self.tasks:
+            if task.state != 'Done':
+                print('>>', self.name, 'CAN NOT be achieved yet')
+                return False
+        print('>>', self.name, 'CAN be achieved now')
+        self.goal_state = 'achieved'
+        return True
+
 
     def set_goal_name(self, goal_name):
         self.name = goal_name
@@ -95,7 +113,7 @@ class Goal(object):
         self.tasks.append(task)
 
     def set_required_goal(self, goal):
-        self.dependents.append(goal)
+        self.subgoals.append(goal)
 
     def set_triggers(self, triggers):
         self.triggers = triggers
@@ -110,10 +128,9 @@ class Goal(object):
         tasks = self._get_leaf_tasks()
         return tasks
 
-    # Modified self.goals -> self.dependents
     def get_goal(self):
-        if len(self.dependents) > 0:
-            return self.dependents[0]
+        if len(self.goals) > 0:
+            return self.goal[0]
         else:
             return None
 
@@ -121,6 +138,7 @@ class Task(object):
     def __init__(self, task_name='', arguments={}):
         self.__name__ = task_name
         self.arguments = arguments
+        self.state = 'Ready'
 
     def __repr__(self):
         return '[Task \'%s\' with \'%s\']' % (self.__name__, self.arguments)
