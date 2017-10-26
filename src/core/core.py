@@ -29,7 +29,7 @@ class Core(object):
 
         if sys.platform == "darwin": # Mac OS X
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher --listen 127.0.0.1 --port %s"%self.port
-            self.map_path = "/Applications/StarCraft II/Maps/Melee/Simple128.SC2Map"
+            self.map_path = "/Applications/StarCraft II/Maps/mini_games/GorasMap.SC2Map"
 
         elif sys.platform == "win32": # Windows
             pass
