@@ -34,7 +34,7 @@ class Core(object):
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher\
                                   --listen 127.0.0.1\
                                   --port %s"%self.port
-            self.map_path = "/Applications/StarCraft II/Maps/Melee/Simple128.SC2Map"
+            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap.SC2Map'
 
         elif sys.platform == "win32": # Windows
             pass
@@ -75,7 +75,7 @@ class Core(object):
             create_game.realtime = True
 
             # send Request
-            self.comm.send(create_game=create_game)
+            print(self.comm.send(create_game=create_game))
             # print (test_client.comm.read())
 
             logger.info('New game is created.')
@@ -88,7 +88,7 @@ class Core(object):
             join_game = sc_pb.RequestJoinGame(race=3, options=interface_options)
 
             # send Request
-            self.comm.send(join_game=join_game)
+            print(self.comm.send(join_game=join_game))
 
             logger.info('Success to join the game.')
         except Exception as ex:
@@ -96,7 +96,7 @@ class Core(object):
 
         # Game Start
         try:
-            self.comm.send(step=sc_pb.RequestStep(count=1))
+            print(self.comm.send(step=sc_pb.RequestStep(count=1)))
 
             logger.info('Game is Started.')
         except Exception as ex:
