@@ -37,6 +37,6 @@ class DummyThread(threading.Thread):
                 self.who.deinit_comm_agents()
                 break
             self.who.tell(word, 1)
-            time.sleep(1)
+            time.sleep(0.1)
             self.who.perceive()
             cnt += 1

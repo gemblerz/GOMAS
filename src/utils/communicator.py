@@ -14,9 +14,9 @@ class Communicator(object):
     def read(self):
         message = ''
         try:
-            message = self.listener.recv_string(flags=zmq.NOBLOCK)
+            message = self.listener.recv_string()
         except zmq.error.Again:
-            pass
+            print("msg doesn't come")
         return message
 
     def send(self, addr, message):
