@@ -13,9 +13,12 @@
 
 import sys
 import time
-import logging
+from agent import Agent
 sys.path.append('../')
 from utils.communicator import Communicator
+from goal import create_goal_set
+from utils.multithreading import AgentThread, DummyThread
+import threading
 
 class Dummy(object):
     def __init__(self):
@@ -47,16 +50,44 @@ class Dummy(object):
     For testing
 """
 if __name__ == '__main__':
+    goal = {'goal': 'introduce myself',
+            'require': [
+                ['say', {'words': 'hello'}],
+                {'goal': 'say hello',
+                 'require': [
+                     ['say', {'words': 'myname'}],
+                     ['say', {'words': 'hehe'}],
+                     {'goal': 'say hajime',
+                      'require': [
+                          ['say', {'words': 'hajime'}]
+                      ]}
+                 ]
+                 }
+            ]
+            }
+
     dummy = Dummy()
     # dummy id = 9999
-    dummy.init_comm_agents(9999)
-    cnt = 1
-    word = "Hello"
-    while True:
-        if cnt == 10:
-            dummy.deinit_comm_agents()
-            break
-        dummy.tell(word, "84")
-        time.sleep(1)
-        dummy.perceive()
-        cnt += 1
+    dummy.init_comm_agents('dummy')
+
+    probe = Agent()
+    probe.spawn(1, 84,
+                initial_knowledge=[
+                    ('type1', 'my_name', ['probe']),
+                    ('type2', 'i', 'say', ['my_name']),
+                ],
+                initial_goals=[create_goal_set(goal)]
+                )
+
+    thread1=DummyThread("dummy",1,dummy)
+    thread2=AgentThread("Agent",2,probe)
+
+    thread1.start()
+    thread2.start()
+
+    thread1.join()
+    thread2.join()
+
+
+
+
