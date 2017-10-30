@@ -31,12 +31,14 @@ class DummyThread(threading.Thread):
 
     def run(self):
         cnt = 1
-        word = "Hello"
+        word = "I'm DUMMY"
         while True:
-            if cnt == 10:
+            if cnt == 20:
                 self.who.deinit_comm_agents()
                 break
+
             self.who.tell(word, 1)
             time.sleep(0.1)
             self.who.perceive()
+
             cnt += 1
