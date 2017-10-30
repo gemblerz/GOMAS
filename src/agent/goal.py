@@ -78,7 +78,7 @@ class Goal(object):
 
     def __repr__(self):
         return '%s with %s tasks and %s dependents' % (self.name, self.tasks, self.subgoals)
-
+    """
     def _get_leaf_tasks(self):
         if len(self.subgoals) == 0:
             return self.tasks
@@ -87,21 +87,31 @@ class Goal(object):
                 if subgoal.goal_state != GOAL_STATE_ACHIEVED and subgoal.goal_state != GOAL_STATE_FAILED:
                     return subgoal._get_leaf_tasks()
             return self.tasks
+    """
+
+    def _get_leaf_goal_and_tasks(self):
+        if len(self.subgoals) == 0:
+            return self, self.tasks
+        else:
+            for subgoal in self.subgoals:
+                if subgoal.goal_state != GOAL_STATE_ACHIEVED and subgoal.goal_state != GOAL_STATE_FAILED:
+                    return subgoal._get_leaf_goal_and_tasks()
+            return self, self.tasks
 
     def can_be_achieved(self):
 
         #check subgoals
         for subgoal in self.subgoals:
             if not subgoal.can_be_achieved():
-                print('>>', self.name, 'CAN NOT be achieved yet')
+                print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
 
         #check task
         for task in self.tasks:
             if task.state != 'Done':
-                print('>>', self.name, 'CAN NOT be achieved yet')
+                print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
-        print('>>', self.name, 'CAN be achieved now')
+        print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
         self.goal_state = 'achieved'
         return True
 
@@ -123,10 +133,15 @@ class Goal(object):
 
     def get_tasks(self):
         return self.tasks
-
+    """
     def get_available_tasks(self):
         tasks = self._get_leaf_tasks()
         return tasks
+    """
+
+    def get_available_goal_and_tasks(self):
+        leaf_goal, tasks = self._get_leaf_goal_and_tasks()
+        return leaf_goal, tasks
 
     def get_goal(self):
         if len(self.subgoals) > 0:

@@ -176,9 +176,10 @@ class Agent(object):
 
         # TODO: all the goals may need to be examined
         for goal in current_goal:
-            tasks = goal.get_available_tasks()
+            # Method name is dirty
+            leaf_goal, tasks = goal.get_available_goal_and_tasks()
             if len(tasks) != 0:
-                goal.goal_state = 'assigned'
+                leaf_goal.goal_state = 'assigned'
             for task in tasks:
                 if task.state == 'Ready':
                     action = self._has_action_for_task(task)
