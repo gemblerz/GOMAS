@@ -123,23 +123,29 @@ class Core(object):
         action.actions.add(action_raw=action_raw)
         self.comm.send(action=action)
 
+        goal = {'goal': 'introduce myself',
+                'require': [
+                    ['say', {'words': 'hello'}],
+                    {'goal': 'say hello',
+                     'require': [
+                         ['say', {'words': 'myname'}],
+                         ['say', {'words': 'hehe'}],
+                         {'goal': 'say hajime',
+                          'require': [
+                              ['say', {'words': 'hajime'}]
+                          ]}
+                     ]
+                     }
+                ]
+                }
+
         probe = Agent()
         probe.spawn(list_unit_tag[0], 84,
                     initial_knowledge=[
                         ('type1', 'my_name', ['probe']),
                         ('type2', 'i', 'say', ['my_name']),
                     ],
-                    initial_goals=[
-                        create_goal_set(
-                            {'goal': 'introduce myself',
-                             'require':
-                                 [['say', {'words': 'hello'}],
-                                  {'goal': 'say hello',
-                                   'require':
-                                       [['say', {'words': 'myname'}]]}
-                                  ]
-                             }),
-                    ]
+                    initial_goals=[create_goal_set(goal)]
                     )
         print('Agent is running...')
         try:

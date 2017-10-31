@@ -7,24 +7,32 @@ import time
 class Communicator(object):
     def __init__(self, id):
         self.context = zmq.Context()
-        self.listener = self.context.socket(zmq.SUB)
-        self.listener.bind('ipc:///tmp/%s-listener' % (id,))
-        self.listener.setsockopt(zmq.SUBSCRIBE, b'')
+        self.subscriber = self.context.socket(zmq.SUB)
+        self.subscriber.bind('ipc:///tmp/%s-listener' % (id,))
+        self.subscriber.setsockopt(zmq.SUBSCRIBE, b'')
+
+        time.sleep(1)
+
+        self.publisher = self.context.socket(zmq.PUB)
 
     def read(self):
         message = ''
         try:
-            message = self.listener.recv_string(flags=zmq.NOBLOCK)
+            #self.subscriber.recv(zmq.DONTWAIT)
+            message = self.subscriber.recv_string(flags=zmq.NOBLOCK)
+            print("msg: %s"%message)
         except zmq.error.Again:
-            pass
+            print("msg doesn't come")
         return message
 
     def send(self, addr, message):
-        sender = self.context.socket(zmq.PUB)
-        sender.connect('ipc:///tmp/%s-listener' % (addr,))
+        #context=zmq.Context()
+        self.publisher.connect('ipc:///tmp/%s-listener' % (addr,))
+
         time.sleep(0.1)
-        sender.send_string(message)
-        sender.close()
+        #sender.send(b'')
+        self.publisher.send_string(message)
+        #sender.close()
 
     def close(self):
-        self.listener.close()
+        self.subscriber.close()
