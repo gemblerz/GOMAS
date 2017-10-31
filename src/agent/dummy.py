@@ -70,23 +70,34 @@ if __name__ == '__main__':
     # dummy id = 9999
     dummy.init_comm_agents('dummy')
 
-    probe = Agent()
-    probe.spawn(1, 84,
+    probe1 = Agent()
+    probe2 = Agent()
+    probe1.spawn(1, 84,
                 initial_knowledge=[
                     ('type1', 'my_name', ['probe']),
                     ('type2', 'i', 'say', ['my_name']),
                 ],
                 initial_goals=[create_goal_set(goal)]
                 )
+    probe2.spawn(2, 84,
+                 initial_knowledge=[
+                     ('type1', 'my_name', ['probe']),
+                     ('type2', 'i', 'say', ['my_name']),
+                 ],
+                 initial_goals=[create_goal_set(goal)]
+                 )
 
     thread1=DummyThread("dummy",1,dummy)
-    thread2=AgentThread("Agent",2,probe)
+    thread2=AgentThread("Agent",2,probe1)
+    thread3=AgentThread("Agent",3,probe2)
 
     thread1.start()
     thread2.start()
+    thread3.start()
 
     thread1.join()
     thread2.join()
+    thread3.join()
 
 
 

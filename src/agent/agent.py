@@ -134,10 +134,10 @@ class Agent(object):
         Information / actions going to simulator
     '''
     def act(self, action):
-        logger.info('%s is performing %s' % (self.name, action))
+        logger.info('%s %s is performing %s' % (self.name,self.spawn_id, action))
         if action.__name__ == 'say':
             words = action.require['words']
-            self.tell(words, 'dummy')
+            self.tell(str(self.spawn_id)+words, 'dummy')
         else:
             action.perform()
         return True
@@ -246,7 +246,7 @@ class Agent(object):
                     #act하고 다시 run할 때 생각
                     #TODO : selected_goal should be leaf goal that act selected_action...?
                     selected_task.state = 'Done'
-                    print('>>', selected_task.__name__, 'is Done')
+                    print('>>',self.spawn_id, selected_task.__name__, 'is Done')
 
             else:
                 break

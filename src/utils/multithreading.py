@@ -38,7 +38,11 @@ class DummyThread(threading.Thread):
                 break
 
             self.who.tell(word, 1)
-            time.sleep(0.1)
+            self.who.perceive()
+
+            self.who.tell(word, 2)
             self.who.perceive()
 
             cnt += 1
+
+            time.sleep(1)
