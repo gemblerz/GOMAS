@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 import zmq
-import threading
 import time
 
 class Communicator(object):
@@ -35,4 +34,5 @@ class Communicator(object):
         #sender.close()
 
     def close(self):
+        self.publisher.close()
         self.subscriber.close()
