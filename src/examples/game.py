@@ -113,7 +113,6 @@ while True:
     # if collected_minerals are over 200, all units is stop
     if collected_minerals >= 50:
         break
-    action.actions.delete()
 print ("Stop")
 unit_command = raw_pb.ActionRawUnitCommand()
 unit_command.ability_id = 4  # Stop Ability
