@@ -11,18 +11,21 @@
 
 """
 
+from datetime import datetime
 import sys
-import time
-from agent import Agent
 sys.path.append('../')
 from utils.communicator import Communicator
-from goal import create_goal_set
-from utils.multithreading import AgentThread, DummyThread
-import threading
+from utils.multithreading import DummyThread
 
 class Dummy(object):
-    def __init__(self):
-        pass
+    def __init__(self,name):
+        self.name=name
+        self.count_sent=[0,0,0]
+        self.count_recv=[0,0,0]
+        self.filename_sent='dummy_log/'+name+'_sent.txt'
+        self.filename_recv='dummy_log/'+name+'_recv.txt'
+        self.file_sent=open(self.filename_sent,'w')
+        self.file_recv=open(self.filename_recv,'w')
 
     """
         Communication to other agents
@@ -37,19 +40,64 @@ class Dummy(object):
 
     def perceive(self):
         message = self.comm_agents.read()
-        print("Message from the Agent:" + message)
         if message:
-            pass
+            t=datetime.now()
+            print(self.name+"\tGot message / Got Time: "+str(t)+" From\t" + message,file=self.file_recv)
+            idx=''.join(x for x in message.split('/')[0] if x.isdigit())
+            self.count_recv[int(idx)-1]+=1
 
     def tell(self, statement, who):
-        print("Dummy is telling to the Agent")
-        self.comm_agents.send(who, statement)
+        t=datetime.now()
+        msg=self.name+'/ Sent Time: '+str(t)+'/ Msg: '+statement
+        print(self.name+"\tis telling to\t\t"+who+' '+msg,file=self.file_sent)
+        idx = ''.join(x for x in who if x.isdigit())
+        self.count_sent[int(idx)-1]+=1
+        self.comm_agents.send(who, msg)
 
+    def print_res(self):
+        print(self.name)
+        for i in range(3):
+            print('\tsent msg to \t%5d #: %d'%(i+1,self.count_sent[i]))
+            print('\trecv msg from \t%5d #: %d'%(i+1,self.count_recv[i]))
+
+        self.file_sent.close()
+        self.file_recv.close()
 
 """
     For testing
 """
 if __name__ == '__main__':
+
+
+    dummy1 = Dummy('dummy1')
+    # dummy1 id = 'dummy1'
+    dummy1.init_comm_agents('dummy1')
+
+    dummy2 = Dummy('dummy2')
+    # dummy2 id = 'dummy2'
+    dummy2.init_comm_agents('dummy2')
+
+    dummy3 = Dummy('dummy3')
+    # dummy3 id = 'dummy3'
+    dummy3.init_comm_agents('dummy3')
+
+    thread1=DummyThread('dummy1',1,dummy1)
+    thread2=DummyThread('dummy2',2,dummy2)
+    thread3=DummyThread('dummy3',3,dummy3)
+
+    thread1.start()
+    thread2.start()
+    thread3.start()
+
+    thread1.join()
+    thread2.join()
+    thread3.join()
+
+    dummy1.print_res()
+    dummy2.print_res()
+    dummy3.print_res()
+
+    '''
     goal = {'goal': 'introduce myself',
             'require': [
                 ['say', {'words': 'hello'}],
@@ -65,11 +113,8 @@ if __name__ == '__main__':
                  }
             ]
             }
-
-    dummy = Dummy()
-    # dummy id = 9999
-    dummy.init_comm_agents('dummy')
-
+    
+    
     probe1 = Agent()
     probe2 = Agent()
     probe1.spawn(1, 84,
@@ -98,7 +143,7 @@ if __name__ == '__main__':
     thread1.join()
     thread2.join()
     thread3.join()
-
+    '''
 
 
 

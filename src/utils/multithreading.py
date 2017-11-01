@@ -21,6 +21,8 @@ class AgentThread(threading.Thread):
         self.who.destroy()
         print('The agent is terminated.')
 
+list_dummyname=['dummy1','dummy2','dummy3']
+count_dummy=3
 class DummyThread(threading.Thread):
     def __init__(self, name, counter,who):
         threading.Thread.__init__(self)
@@ -31,17 +33,20 @@ class DummyThread(threading.Thread):
 
     def run(self):
         cnt = 1
-        word = "I'm DUMMY"
+        wordorg="HI"
         while True:
-            if cnt == 20:
+            word=wordorg+' #'+str(cnt)
+            if cnt == 10:
                 self.who.deinit_comm_agents()
                 break
+            for i in range(count_dummy):
+                self.who.perceive()
 
-            self.who.tell(word, 1)
-            self.who.perceive()
+            # broadcasting
+            for i in range(count_dummy):
 
-            self.who.tell(word, 2)
-            self.who.perceive()
+                if list_dummyname[i]!=self.name:
+                    self.who.tell(word, list_dummyname[i])
 
             cnt += 1
 
