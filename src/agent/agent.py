@@ -139,7 +139,7 @@ class Agent(object):
             words = action.require['words']
             self.tell(str(self.spawn_id)+words, 'dummy')
         else:
-            action.perform()
+            return action.perform(self.spawn_id)
         return True
 
     '''
