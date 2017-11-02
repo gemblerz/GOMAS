@@ -24,38 +24,22 @@
     - id: 16
       name: move
       require:
-        - target: pointorunit
-        - pos_x: int
-        - pos_y: int
+        - target: point
+        - pos_x: 0
+        - pos_y: 0
 
     #gather is consist of MULEgater and MULEreturn    
     - id: 166
-      name: mulegather #gather MULE
+      name: gather #gather MULE
       require:
         - target: unit
-
-    - id: 167
-      name: mulegather #return MULE
-      require:
-        - target: none
-    
-    #attack can be seperated attack units and attack towers
-    - id: 23
-      name: attack #attack unit
-      require:
-        - target: pointorunit
-
-    - id: 24
-      name: attack #attack towers
-      require:
-        - target: point
+        - unit_tag: 0
 
     #according to building ID, action id id diff(880~910)
     - id: 880 
       name: protossbuild
       require:
         - target: point
-        - building: int #building ID
-        - location_x: int
-        - location_y: int
-
+        - location_x: 0
+        - location_y: 0
+        - building: 0
