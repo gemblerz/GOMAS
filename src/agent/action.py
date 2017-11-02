@@ -1,3 +1,6 @@
+
+from s2clientprotocol import sc2api_pb2 as sc_pb
+from s2clientprotocol import raw_pb2 as raw_pb
 """
     Action class
     This lists all possible actions of a unit
@@ -36,11 +39,26 @@ class Action(object):
         else:
             return False
 
-    def perform(self):
+    def perform(self, spawn_id):
         # Pass arguments
-        for param in self.require:
-            param_str = '%s=\'%s\'' % (param, self.require[param])
-            exec(param_str)
 
+        unit_command = raw_pb.ActionRawUnitCommand(ability_id=self.sc2_id)
+        unit_command.unit_tags.append(spawn_id)
+
+        if self.require[0]['target'] == 'point':
+            unit_command.target_world_space_pos.x = self.require[1]['pos_x']
+            unit_command.target_world_space_pos.y = self.require[2]['pos_y']
+
+        elif self.require[0]['target'] == 'unit':
+            unit_command.target_unit_tag = self.require[1]['unit_tag']
+        else:
+            pass
+
+        action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+        action = sc_pb.RequestAction()
+        action.actions.add(action_raw=action_raw)
+
+        return action
         # Perform the action in real
-        exec(self.code)
+
+
