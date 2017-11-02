@@ -8,7 +8,6 @@ import logging
 import zmq
 import os
 import time
-
 import sys
 sys.path.append('../agent')
 from agent import Agent
@@ -107,22 +106,6 @@ class Core(object):
 
         self._start_new_game()
 
-        list_unit_tag = []
-        observation = sc_pb.RequestObservation()
-        t = self.comm.send(observation=observation)
-
-        for unit in t.observation.observation.raw_data.units:
-            if unit.unit_type == 84:  # Probe unit_type_tag
-                list_unit_tag.append(unit.tag)
-
-        action=raw_pb.ActionRawUnitCommand(ability_id=4)
-        action.unit_tags.append(list_unit_tag[0])
-        action_raw = raw_pb.ActionRaw(unit_command=action)
-
-        action = sc_pb.RequestAction()
-        action.actions.add(action_raw=action_raw)
-        self.comm.send(action=action)
-
         goal = {'goal': 'introduce myself',
                 'require': [
                     ['say', {'words': 'hello'}],
@@ -139,7 +122,20 @@ class Core(object):
                 ]
                 }
 
+        list_mineral_tag = []
+        list_unit_tag = []
+
+        observation = sc_pb.RequestObservation()
+        t = self.comm.send(observation=observation)
+
+        for unit in t.observation.observation.raw_data.units:
+            if unit.unit_type == 84:  # Probe unit_type_tag
+                list_unit_tag.append(unit.tag)
+            if unit.unit_type == 341:  # Mineral unit_type_tag
+                list_mineral_tag.append(unit.tag)
+
         probe = Agent()
+        probe1 = Agent()
         probe.spawn(list_unit_tag[0], 84,
                     initial_knowledge=[
                         ('type1', 'my_name', ['probe']),
@@ -147,18 +143,26 @@ class Core(object):
                     ],
                     initial_goals=[create_goal_set(goal)]
                     )
+        probe1.spawn(list_unit_tag[1], 84,
+                    initial_knowledge=[
+                        ('type1', 'my_name', ['probe']),
+                        ('type2', 'i', 'say', ['my_name']),
+                    ],
+                    initial_goals=[create_goal_set(goal)]
+                    )
+
         print('Agent is running...')
         try:
-            probe.run()
+            self.comm.send(action=probe.act(probe.actions[2]))
+            time.sleep(2)
+            self.comm.send(action=probe1.act(probe1.actions[2]))
+            self.comm.send(action=probe.act(probe.actions[1]))
+
+
         except KeyboardInterrupt:
             pass
         probe.destroy()
         print('The agent is terminated.')
-
-
-
-
-
 
 
 if __name__ == '__main__':
