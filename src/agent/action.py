@@ -31,7 +31,7 @@ class Action(object):
         return 'Action %s with id %d requires %s ' % (self.__name__, self.sc2_id, self.require)
 
     def set_arguments(self, args):
-        self.require.update(args)
+        self.require=args
 
     def can_perform(self, task_name):
         if task_name == self.__name__:
@@ -41,16 +41,16 @@ class Action(object):
 
     def perform(self, spawn_id):
         # Pass arguments
-
+        print(self)
         unit_command = raw_pb.ActionRawUnitCommand(ability_id=self.sc2_id)
         unit_command.unit_tags.append(spawn_id)
 
-        if self.require[0]['target'] == 'point':
-            unit_command.target_world_space_pos.x = self.require[1]['pos_x']
-            unit_command.target_world_space_pos.y = self.require[2]['pos_y']
+        if self.require['target'] == 'point':
+            unit_command.target_world_space_pos.x = self.require['pos_x']
+            unit_command.target_world_space_pos.y = self.require['pos_y']
 
-        elif self.require[0]['target'] == 'unit':
-            unit_command.target_unit_tag = self.require[1]['unit_tag']
+        elif self.require['target'] == 'unit':
+            unit_command.target_unit_tag = self.require['unit_tag']
         else:
             pass
 

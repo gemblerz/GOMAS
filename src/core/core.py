@@ -105,19 +105,6 @@ class Core(object):
     def run(self):
 
         self._start_new_game()
-        goal = {'goal': 'gather 100 minerals',
-                'trigger': [],
-                'satisfy': [
-                    ('type2', 'i', 'have', ['100 minerals'])
-                ],
-                'precedent': [],
-                'require': [
-                    ['move', {'target': 'point', 'pos_x': '1', 'pos_y': '1'}],
-                    ['mulegather', {'target': '1'}],  # target: unit
-                    ['mulereturn', {'target': 'none'}]
-                ]
-
-                }
 
         """
         goal = {'goal': 'introduce myself',
@@ -149,8 +136,21 @@ class Core(object):
             if unit.unit_type == 341:  # Mineral unit_type_tag
                 list_mineral_tag.append(unit.tag)
 
+        goal = {'goal': 'gather 100 minerals',
+                'trigger': [],
+                'satisfy': [
+                    ('type2', 'i', 'have', ['100 minerals'])
+                ],
+                'precedent': [],
+                'require': [
+                    ['move', {'target': 'point', 'pos_x': 10, 'pos_y': 10}],
+                    ['gather', {'target': 'unit','unit_tag':list_mineral_tag[0]}],  # target: unit
+                ]
+
+                }
+
+
         probe = Agent()
-        probe1 = Agent()
         probe.spawn(list_unit_tag[0], 84,
                     initial_knowledge=[
                         ('type1', 'my_name', ['probe']),
@@ -158,21 +158,16 @@ class Core(object):
                     ],
                     initial_goals=[create_goal_set(goal)]
                     )
-        probe1.spawn(list_unit_tag[1], 84,
-                    initial_knowledge=[
-                        ('type1', 'my_name', ['probe']),
-                        ('type2', 'i', 'say', ['my_name']),
-                    ],
-                    initial_goals=[create_goal_set(goal)]
-                    )
-
         print('Agent is running...')
         try:
+            probe.run()
+
+            #for test
+            """
             self.comm.send(action=probe.act(probe.actions[2]))
             time.sleep(2)
             self.comm.send(action=probe1.act(probe1.actions[2]))
-            self.comm.send(action=probe.act(probe.actions[1]))
-
+            """
 
         except KeyboardInterrupt:
             pass
