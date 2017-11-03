@@ -66,7 +66,7 @@ class DummyThread(threading.Thread):
             for i in range(count_dummy):
                 self.who.perceive()
 
-            time.sleep(1)
+            time.sleep(0.1)
 
         self.who.print_res()
 
@@ -148,6 +148,8 @@ if __name__ == '__main__':
     time.sleep(1)
 
     proxy_thread.start()
+
+    time.sleep(1) # wait for turn on proxy
 
     thread1.start()
     thread2.start()
