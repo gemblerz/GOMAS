@@ -37,7 +37,7 @@
 
     #according to building ID, action id id diff(880~910)
     - id: 880 
-      name: protossbuild
+      name: build
       require:
         - target: point
           location_x: 0
