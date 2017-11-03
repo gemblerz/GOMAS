@@ -105,7 +105,21 @@ class Core(object):
     def run(self):
 
         self._start_new_game()
+        goal = {'goal': 'gather 100 minerals',
+                'trigger': [],
+                'satisfy': [
+                    ('type2', 'i', 'have', ['100 minerals'])
+                ],
+                'precedent': [],
+                'require': [
+                    ['move', {'target': 'point', 'pos_x': '1', 'pos_y': '1'}],
+                    ['mulegather', {'target': '1'}],  # target: unit
+                    ['mulereturn', {'target': 'none'}]
+                ]
 
+                }
+
+        """
         goal = {'goal': 'introduce myself',
                 'require': [
                     ['say', {'words': 'hello'}],
@@ -121,6 +135,7 @@ class Core(object):
                      }
                 ]
                 }
+        """
 
         list_mineral_tag = []
         list_unit_tag = []
