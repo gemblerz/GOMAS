@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 """
-    Dummy Agent to test single agent using communicator.py
+    Class DummyThread
     This dummy communicates with the agent,
         - receive a message from the agent and check the agent's task
         - send a message(result) to the agent after checking the agent's message
@@ -9,86 +9,85 @@
     The agents need to change their goal state to Achieved/Failed state
     when the task is completed.
 
+    Class Dummy
+    This class is simplest version of Agent.
+    This Only contains the essential core code to communicate each other.
+
 """
 
 import sys
 import threading
 import time
+import random
+import logging
 from datetime import datetime
 
 sys.path.append('../')
 from utils.communicator import Communicator, proxy
 
+FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
 
-list_dummyname=[5501,5502,5503]
+TEST_NUM=10
+SLEEP_TIME=0.1 #if SLEEP_TIME is zero, it means random.
+
 count_dummy=3
-
-
+total_msg=100
+recv_msg=0
 
 class DummyThread(threading.Thread):
     def __init__(self, name, counter):
-        print(name+' Thread starts initializing...')
+        logging.info(name+' Thread starts initializing...')
 
         threading.Thread.__init__(self)
         self.threadID = counter
         self.name = name
-        self.counter = counter
         self.who=Dummy(self.name)
-        self.who.init_comm_agents(self.name)
+        self.who.init_comm_agents()
 
-        print(self.name+' is Initialzied')
+        logging.info(self.name+' is Initialzied')
 
     def run(self):
-        print(self.name+' is now running')
+
+        logging.info(self.name+' is started to run')
         cnt = 1
         wordorg="HI"
         while True:
+            logging.info(self.name+' is running %d loop'%cnt)
             word=wordorg+' #'+str(cnt)
-            if cnt == 20:
-                #self.who.deinit_comm_agents()
+            if cnt > total_msg:
                 break
-
-            #for i in range(count_dummy):
-
-
-            # broadcasting
-            addrs=[]
-            for i in range(count_dummy):
-
-                if list_dummyname[i]!=(self.threadID+5500):
-                    addrs.append(list_dummyname[i])
-
-            self.who.tell(word, addrs)
-
-            cnt += 1
-            print(cnt)
 
             for i in range(count_dummy):
                 self.who.perceive()
 
-            time.sleep(0.1)
+            # broadcasting
+            self.who.tell(word)
+
+            cnt += 1
+
+            t=SLEEP_TIME
+            if t==0:
+                t=random.randrange(1,10)
+                t/=10
+            time.sleep(t)
 
         self.who.print_res()
 
 class Dummy(object):
     def __init__(self,name):
+
         self.name=name
-        self.count_sent=[0,0,0]
-        self.count_recv=[0,0,0]
+        self.count_sent=[0 for i in range(count_dummy)]
+        self.count_recv=[0 for i in range(count_dummy)]
         self.filename_sent='dummy_log/'+name+'_sent.txt'
         self.filename_recv='dummy_log/'+name+'_recv.txt'
         self.file_sent=open(self.filename_sent,'w')
         self.file_recv=open(self.filename_recv,'w')
-        self.id=int(''.join(x for x in name if x.isdigit()))+5500
 
-
-    """
-        Communication to other agents
-    """
-
-    def init_comm_agents(self, id):
-        self.comm_agents = Communicator(self.id)
-
+    def init_comm_agents(self):
+        self.comm_agents = Communicator()
 
     def deinit_comm_agents(self):
         self.comm_agents.close()
@@ -97,64 +96,76 @@ class Dummy(object):
         message = self.comm_agents.read()
         if message:
             t=datetime.now()
-            print(self.name+"\tGot message / Got Time: "+str(t)+" From\t" + message,file=self.file_recv)
+            print("Got message / Got Time: "+str(t)+" From\t" + message,file=self.file_recv)
             idx=''.join(x for x in message.split('/')[0] if x.isdigit())
             self.count_recv[int(idx)-1]+=1
 
-    def tell(self, statement, who):
+    def tell(self, statement):
         t=datetime.now()
         msg=self.name+'/ Sent Time: '+str(t)+'/ Msg: '+statement
         print(self.name+"\tis telling to everyone "+msg,file=self.file_sent)
-        #idx = who-5500#''.join(x for x in who if x.isdigit())
         for i in range(count_dummy):
             self.count_sent[i]+=1
-        self.comm_agents.send(who, msg)
+        self.comm_agents.send(msg)
 
     def print_res(self):
+        global recv_msg
         print(self.name)
         for i in range(count_dummy):
             print('\t'+self.name+' sent msg to \t\t%5d #: %d'%(i+1,self.count_sent[i]))
             print('\t'+self.name+' recv msg from \t%5d #: %d'%(i+1,self.count_recv[i]))
-
+            recv_msg+=self.count_recv[i]
         self.file_sent.close()
         self.file_recv.close()
-
-
 
 """
     For testing
 """
 if __name__ == '__main__':
+
+
+    value_dict={}
+    value_dict['test#']=TEST_NUM
+    value_dict['dummy#']=count_dummy
+    value_dict['recvmsg#']=0
+    value_dict['totalmsg#']=total_msg*count_dummy*count_dummy
+    value_dict['time']=0
+
+    start_time=time.time()
     threads=[]
-
-    #dummy1 = Dummy('dummy1')
-    # dummy1 id = 'dummy1'
-    #dummy1.init_comm_agents('dummy1')
-
-    #dummy2 = Dummy('dummy2')
-    # dummy2 id = 'dummy2'
-    #dummy2.init_comm_agents('dummy2')
-
-    #dummy3 = Dummy('dummy3')
-    # dummy3 id = 'dummy3'
-    #dummy3.init_comm_agents('dummy3')
 
     proxy_thread = threading.Thread(target=proxy)
 
-    thread1=DummyThread('dummy1',1)
-    thread2=DummyThread('dummy2',2)
-    thread3=DummyThread('dummy3',3)
+    based_name='dummy'
+    counter=1
+    for i in range(count_dummy):
+        name=based_name+str(i+1)
+        threads.append(DummyThread(name,counter))
+        counter+=1
 
+    # Wait for thread initialization
     time.sleep(1)
 
     proxy_thread.start()
 
     time.sleep(1) # wait for turn on proxy
 
-    thread1.start()
-    thread2.start()
-    thread3.start()
+    # Start all threads
+    for thread in threads:
+        thread.start()
 
-    thread3.join()
-    thread2.join()
-    thread1.join()
+    # Wait for all threads exit
+    for thread in threads:
+        thread.join()
+
+    execution_time=time.time()-start_time
+    value_dict['time']=execution_time
+    print("Execution Time : %s seconds"%(execution_time))
+
+    value_dict['recvmsg#']=recv_msg
+    print("Received # : %d"%recv_msg)
+
+    import json
+    with open('durability_test/missed_msg', 'a') as logfile:
+        json.dump(value_dict,logfile, indent=4, sort_keys=True,separators=(',', ': '))
+    #logfile.close()
