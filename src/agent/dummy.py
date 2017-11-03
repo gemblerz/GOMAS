@@ -17,11 +17,14 @@ import time
 from datetime import datetime
 
 sys.path.append('../')
-from utils.communicator import Communicator
+from utils.communicator import Communicator, proxy
 
 
 list_dummyname=[5501,5502,5503]
 count_dummy=3
+
+
+
 class DummyThread(threading.Thread):
     def __init__(self, name, counter):
         print(name+' Thread starts initializing...')
@@ -45,16 +48,23 @@ class DummyThread(threading.Thread):
                 #self.who.deinit_comm_agents()
                 break
 
-            for i in range(count_dummy-1):
-                self.who.perceive()
+            #for i in range(count_dummy):
+
 
             # broadcasting
+            addrs=[]
             for i in range(count_dummy):
 
                 if list_dummyname[i]!=(self.threadID+5500):
-                    self.who.tell(word, list_dummyname[i])
+                    addrs.append(list_dummyname[i])
+
+            self.who.tell(word, addrs)
 
             cnt += 1
+            print(cnt)
+
+            for i in range(count_dummy):
+                self.who.perceive()
 
             time.sleep(1)
 
@@ -94,9 +104,10 @@ class Dummy(object):
     def tell(self, statement, who):
         t=datetime.now()
         msg=self.name+'/ Sent Time: '+str(t)+'/ Msg: '+statement
-        print(self.name+"\tis telling to\t\t"+str(who)+' '+msg,file=self.file_sent)
-        idx = who-5500#''.join(x for x in who if x.isdigit())
-        self.count_sent[int(idx)-1]+=1
+        print(self.name+"\tis telling to everyone "+msg,file=self.file_sent)
+        #idx = who-5500#''.join(x for x in who if x.isdigit())
+        for i in range(count_dummy):
+            self.count_sent[i]+=1
         self.comm_agents.send(who, msg)
 
     def print_res(self):
@@ -107,6 +118,8 @@ class Dummy(object):
 
         self.file_sent.close()
         self.file_recv.close()
+
+
 
 """
     For testing
@@ -126,10 +139,16 @@ if __name__ == '__main__':
     # dummy3 id = 'dummy3'
     #dummy3.init_comm_agents('dummy3')
 
+    proxy_thread = threading.Thread(target=proxy)
+
     thread1=DummyThread('dummy1',1)
     thread2=DummyThread('dummy2',2)
     thread3=DummyThread('dummy3',3)
 
+    time.sleep(1)
+
+    proxy_thread.start()
+
     thread1.start()
     thread2.start()
     thread3.start()
@@ -137,64 +156,3 @@ if __name__ == '__main__':
     thread3.join()
     thread2.join()
     thread1.join()
-
-    '''
-    dummy1.print_res()
-    dummy2.print_res()
-    dummy3.print_res()
-
-    dummy1.deinit_comm_agents()
-    dummy2.deinit_comm_agents()
-    dummy3.deinit_comm_agents()
-    '''
-
-    '''
-    goal = {'goal': 'introduce myself',
-            'require': [
-                ['say', {'words': 'hello'}],
-                {'goal': 'say hello',
-                 'require': [
-                     ['say', {'words': 'myname'}],
-                     ['say', {'words': 'hehe'}],
-                     {'goal': 'say hajime',
-                      'require': [
-                          ['say', {'words': 'hajime'}]
-                      ]}
-                 ]
-                 }
-            ]
-            }
-    
-    
-    probe1 = Agent()
-    probe2 = Agent()
-    probe1.spawn(1, 84,
-                initial_knowledge=[
-                    ('type1', 'my_name', ['probe']),
-                    ('type2', 'i', 'say', ['my_name']),
-                ],
-                initial_goals=[create_goal_set(goal)]
-                )
-    probe2.spawn(2, 84,
-                 initial_knowledge=[
-                     ('type1', 'my_name', ['probe']),
-                     ('type2', 'i', 'say', ['my_name']),
-                 ],
-                 initial_goals=[create_goal_set(goal)]
-                 )
-
-    thread1=DummyThread("dummy",1,dummy)
-    thread2=AgentThread("Agent",2,probe1)
-    thread3=AgentThread("Agent",3,probe2)
-
-    thread1.start()
-    thread2.start()
-    thread3.start()
-
-    thread1.join()
-    thread2.join()
-    thread3.join()
-    '''
-
-
-
