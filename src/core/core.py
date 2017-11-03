@@ -163,11 +163,10 @@ class Core(object):
             probe.run()
 
             #for test
-            """
             self.comm.send(action=probe.act(probe.actions[2]))
             time.sleep(2)
-            self.comm.send(action=probe1.act(probe1.actions[2]))
-            """
+            self.comm.send(action=probe.act(probe.actions[3]))
+
 
         except KeyboardInterrupt:
             pass
