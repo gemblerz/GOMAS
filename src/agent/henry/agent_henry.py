@@ -17,7 +17,7 @@ sys.path.append('../')
 from units import units
 from utils.communicator import Communicator
 
-from action import Action, get_basic_actions
+from action_henry import Action, get_basic_actions
 from knowledge_base import Knowledge
 from goal import Goal, create_goal_set
 
@@ -34,6 +34,9 @@ class MentalState(object):
     '''
     def __init__(self):
         self.state = 'idle'
+
+    def change_state(self):
+        self.state = 'working'
 
 class Agent(object):
     def __init__(self):
@@ -134,11 +137,34 @@ class Agent(object):
     '''
         Information / actions going to simulator
     '''
-    def act(self, action):
-        logger.info('%s is performing %s' % (self.name, action))
-        if action.__name__ == 'say':
+    def act(self, action, task):
+        self.state.change_state()
+        task.state = 'Active'
+        logger.info('%s %s is performing %s' % (self.name,self.spawn_id, action) )
+        action.set_arguments(task.arguments)
+        if action.__name__=='say':
             words = action.require['words']
             self.tell(words, 'dummy')
+        elif action.__name__=='block':
+            words = action.require['words']
+            logger.info('I am finding Henry...')
+            action.perform()
+        elif action.__name__=='do':
+            words = action.require['words']
+            logger.info('Sorry.....')
+            action.perform()
+        elif action.__name__=='coding':
+            words = action.require['words']
+            logger.info('Coding at KSQ')
+            action.perform()
+        elif action.__name__=='find':
+            words = action.require['words']
+            logger.info('Where is Henry..?')
+            action.perform()
+        elif action.__name__=='watch':
+            words = action.require['words']
+            logger.info('Wait for 2 minutes~')
+            action.perform()
         else:
             action.perform()
         return True
@@ -162,7 +188,6 @@ class Agent(object):
     def _has_action_for_task(self, task):
         for action in self.actions:
             if action.can_perform(task.__name__):
-                action.set_arguments(task.arguments)
                 return action
         return None
 
@@ -204,6 +229,9 @@ class Agent(object):
             return None, None
 
         return_action = list_actions[0]
+
+        #TODO : which agent should take the 
+
         # Return the most beneficial action from the selected actions
         return return_action
 
@@ -231,6 +259,9 @@ class Agent(object):
             for goal in self.goals:
                 print('>> Start checking goal tree... root goal is', goal.name)
                 goal.can_be_achieved()
+            
+            if self.state.state == 'working':
+                continue
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge)
@@ -240,7 +271,7 @@ class Agent(object):
                 #if : check the start condition(assinged? available? ) -> check goal instance in knowledge base
                 #selected_goal.goal_state = 'active'
                 print('>> Now tring to do %s' % (selected_action)) #Active
-                if not self.act(selected_action):
+                if not self.act(selected_action, selected_task):
                     # Action failed, put the goal back to the queue
                     selected_task.state = 'failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
                     #self.goals.append(selected_goal) 일단은 append하지 말고 그냥 failed로 둡시다..... available한 goal로 그냥 두기
@@ -258,6 +289,7 @@ class Agent(object):
             # May tell others the action has performed
 
             # Sleep a while to prevent meaningless burst looping
+            self.state.__init__()
             time.sleep(self.discrete_time_step)
 
         # Stopped thinking
