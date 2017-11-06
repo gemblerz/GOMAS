@@ -29,10 +29,10 @@ FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
-TEST_NUM=10
-SLEEP_TIME=0.1 #if SLEEP_TIME is zero, it means random.
+TEST_NUM=3
+SLEEP_TIME=0 #if SLEEP_TIME is zero, it means random.
 
-count_dummy=3
+count_dummy=10
 total_msg=100
 recv_msg=0
 
@@ -166,6 +166,7 @@ if __name__ == '__main__':
     print("Received # : %d"%recv_msg)
 
     import json
-    with open('durability_test/missed_msg', 'a') as logfile:
+    with open('durability_test/recv_msg_sleep_rand', 'a') as logfile:
         json.dump(value_dict,logfile, indent=4, sort_keys=True,separators=(',', ': '))
+        print('',file=logfile)
     #logfile.close()
