@@ -248,7 +248,7 @@ class Agent(object):
                     #act하고 다시 run할 때 생각
                     #TODO : selected_goal should be leaf goal that act selected_action...?
                     selected_task.state = 'Done'
-                    print('>>',self.spawn_id, selected_task.__name__, 'is Done')
+                    print('>>', selected_task.__name__, 'is Done')
 
             else:
                 break
@@ -269,6 +269,23 @@ class Agent(object):
 '''
 if __name__ == '__main__':
 
+    """
+    goal = {'goal': 'gather 100 minerals',
+            'trigger': [],
+            'satisfy': [
+                ('type2', 'i', 'have', ['100 minerals'])
+            ],
+            'precedent': [],
+            'require': [
+                #['move', {'target': 'point', 'pos_x': '1', 'pos_y': '1'}],
+                ['mulegather', {'target': '1'}],  #target: unit
+                #['mulereturn', {'target': 'none'}]
+            ]
+
+    }
+
+
+    """
     goal = {'goal': 'introduce myself',
             'require': [
                 ['say', {'words': 'hello'}],
