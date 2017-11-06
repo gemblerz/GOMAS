@@ -10,13 +10,15 @@
 '''
 def get_basic_actions():
     actions = []
-    code = '''
-	print('???')
-self.tell(words)
-    '''
-    infinite_loop = """print(\'Henry!!! Henry!!!!!\')\nwhile True: \n continue""" 
-    actions.append(Action(action_name='say', actual_code=code, require={'words': 'string'}))
-    actions.append(Action(action_name='block', actual_code=infinite_loop, require={'words': 'string'}))
+    finding = """print(\'Henry!!! Henry!!! Henry!!!!!!!\')"""
+    infinite_loop = """print(\'LIKEY!!! LIKEY!!!!!\')\nwhile True: \n continue""" 
+    coding = """print(words, \'is hard working\')"""
+    doing = """print(\'Henry is doing\',words)"""
+
+    actions.append(Action(action_name='find', actual_code=finding, require={'words': 'string'}))
+    actions.append(Action(action_name='watch', actual_code=infinite_loop, require={'words': 'string'}))
+    actions.append(Action(action_name='coding', actual_code=coding, require={'words': 'string'}))
+    actions.append(Action(action_name='do', actual_code=doing, require={'words': 'string'}))
     return actions
 
 
