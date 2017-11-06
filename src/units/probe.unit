@@ -19,12 +19,12 @@
     - id: 4
       name: stop
       require:
-        - target: none
+          target: none
 
     - id: 16
       name: move
       require:
-        - target: point
+          target: point
           pos_x: 0
           pos_y: 0
 
@@ -32,14 +32,14 @@
     - id: 166
       name: gather #gather MULE
       require:
-        - target: unit
+          target: unit
           unit_tag: 0
 
     #according to building ID, action id id diff(880~910)
     - id: 880 
       name: build
       require:
-        - target: point
+          target: point
           location_x: 0
           location_y: 0
           building: 0
