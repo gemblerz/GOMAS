@@ -1,0 +1,16 @@
+{
+	"goal": "gather 100 minerals",
+	"trigger": [],
+	"satisfy": [
+		{"type": "type2", "noun": "i", "verb": "have", "objective": "100 minerals"}
+	],
+	"precedent": [],
+	"require": [
+			[
+				{"name": "move", "target": "point", "pos_x": 1, "pos_y":1},
+				{"name": "mulegater", "target": 1},
+				{"name": "mulereturn", "target": "none"}
+			],
+		{}
+	]
+}
