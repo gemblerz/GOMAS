@@ -1,38 +1,83 @@
 #! /usr/bin/env python3
 
+"""
+    Class Communicator
+    This contains communicator to get and send msg each other,
+        - Using ZeroMQ to connect, especially using PUB/SUB method.
+        - Our Communicator model uses one Brocker intermediate.
+        - Assume that all agents always 'broadcasting' their msg to everyone.
+
+    Func proxy
+    This describes our intermediate broker.
+        - Using ZeroMQ to receive and send msg, sockets are consist of XPUB/XSUB.
+        - Before start connection, proxy() must be called first.
+"""
+
 import zmq
-import threading
 import time
 
+# Broker's addresses
+proxy_addr_in = 'tcp://127.0.0.1:5555'
+proxy_addr_out = 'tcp://127.0.0.1:5556'
+
 class Communicator(object):
-    def __init__(self, id):
-        self.context = zmq.Context()
+    def __init__(self,core=False):
+        self.core=core
+        self.context = zmq.Context.instance()
+
+        # connect subscriber to broker's XPUB socket
         self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.bind('ipc:///tmp/%s-listener' % (id,))
-        self.subscriber.setsockopt(zmq.SUBSCRIBE, b'')
+        if self.core is True:
+            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'core')
+        else:
+            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'agent')
+
+        self.subscriber.connect(proxy_addr_out)
+
+        # connect publisher to broker's XSUB socket
+        self.publisher = self.context.socket(zmq.PUB)
+        self.publisher.connect(proxy_addr_in)
 
         time.sleep(1)
-
-        self.publisher = self.context.socket(zmq.PUB)
 
     def read(self):
         message = ''
         try:
-            #self.subscriber.recv(zmq.DONTWAIT)
+            # zmq.NOBLOCK makes the process not wait for msg.
+            # When it is waiting for msg, if there is no msg, just continue the process.
             message = self.subscriber.recv_string(flags=zmq.NOBLOCK)
-            print("msg: %s"%message)
+
         except zmq.error.Again:
-            print("msg doesn't come")
+            pass
         return message
 
-    def send(self, addr, message):
-        #context=zmq.Context()
-        self.publisher.connect('ipc:///tmp/%s-listener' % (addr,))
+    def send(self, message):
 
-        time.sleep(0.1)
-        #sender.send(b'')
-        self.publisher.send_string(message)
-        #sender.close()
+        if self.core is True:
+            self.publisher.send_string("%s %s"%('agent',message))
+        else:
+            self.publisher.send_string("%s %s"%('core',message))
+
 
     def close(self):
+        self.publisher.close()
         self.subscriber.close()
+        self.context.term()
+
+# Proxy server acts Broker to transfer msg from all agents to all agents.
+def proxy():
+    addr_in = proxy_addr_in
+    addr_out = proxy_addr_out
+
+    context = zmq.Context.instance()
+    socket_in = context.socket(zmq.XSUB)
+    socket_in.bind(addr_in)
+    socket_out = context.socket(zmq.XPUB)
+    socket_out.bind(addr_out)
+
+    try:
+        zmq.proxy(socket_in, socket_out)
+    except zmq.ContextTerminated:
+        print("proxy terminated")
+        socket_in.close()
+        socket_out.close()
