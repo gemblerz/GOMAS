@@ -102,7 +102,8 @@ class Agent(object):
         Communication to other agents
     '''
     def init_comm_agents(self):
-        self.comm_agents = Communicator(self.spawn_id)
+        #self.comm_agents = Communicator(self.spawn_id)
+        self.comm_agents = Communicator()
 
     def deinit_comm_agents(self):
         # It may need to send 'good bye' to others
