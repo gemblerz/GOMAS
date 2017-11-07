@@ -29,22 +29,22 @@ FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
-TEST_NUM=3
-SLEEP_TIME=0 #if SLEEP_TIME is zero, it means random.
+TEST_NUM=1
+SLEEP_TIME=1.0 #if SLEEP_TIME is zero, it means random.
 
-count_dummy=10
-total_msg=100
+count_dummy=3
+total_msg=10
 recv_msg=0
 
 class DummyThread(threading.Thread):
-    def __init__(self, name, counter):
+    def __init__(self, name, counter,core=False):
         logging.info(name+' Thread starts initializing...')
 
         threading.Thread.__init__(self)
         self.threadID = counter
         self.name = name
         self.who=Dummy(self.name)
-        self.who.init_comm_agents()
+        self.who.init_comm_agents(core)
 
         logging.info(self.name+' is Initialzied')
 
@@ -81,13 +81,13 @@ class Dummy(object):
         self.name=name
         self.count_sent=[0 for i in range(count_dummy)]
         self.count_recv=[0 for i in range(count_dummy)]
-        self.filename_sent='dummy_log/'+name+'_sent.txt'
-        self.filename_recv='dummy_log/'+name+'_recv.txt'
+        self.filename_sent='./../../test/connection_dur_test/dummy_log/'+name+'_sent.txt'
+        self.filename_recv='./../../test/connection_dur_test/dummy_log/'+name+'_recv.txt'
         self.file_sent=open(self.filename_sent,'w')
         self.file_recv=open(self.filename_recv,'w')
 
-    def init_comm_agents(self):
-        self.comm_agents = Communicator()
+    def init_comm_agents(self,core=False):
+        self.comm_agents = Communicator(core)
 
     def deinit_comm_agents(self):
         self.comm_agents.close()
@@ -98,7 +98,8 @@ class Dummy(object):
             t=datetime.now()
             print("Got message / Got Time: "+str(t)+" From\t" + message,file=self.file_recv)
             idx=''.join(x for x in message.split('/')[0] if x.isdigit())
-            self.count_recv[int(idx)-1]+=1
+            if idx.isdigit()==True:
+                self.count_recv[int(idx)-1]+=1
 
     def tell(self, statement):
         t=datetime.now()
@@ -121,6 +122,8 @@ class Dummy(object):
 """
     For testing
 """
+RECORD_TEST = False
+
 if __name__ == '__main__':
 
 
@@ -138,10 +141,14 @@ if __name__ == '__main__':
 
     based_name='dummy'
     counter=1
-    for i in range(count_dummy):
+    for i in range(count_dummy-1):
         name=based_name+str(i+1)
         threads.append(DummyThread(name,counter))
         counter+=1
+
+    #Add CoreThread
+    name=based_name+'core3'
+    threads.append(DummyThread(name,counter,core=True))
 
     # Wait for thread initialization
     time.sleep(1)
@@ -165,8 +172,8 @@ if __name__ == '__main__':
     value_dict['recvmsg#']=recv_msg
     print("Received # : %d"%recv_msg)
 
-    import json
-    with open('durability_test/recv_msg_sleep_rand', 'a') as logfile:
-        json.dump(value_dict,logfile, indent=4, sort_keys=True,separators=(',', ': '))
-        print('',file=logfile)
-    #logfile.close()
+    if RECORD_TEST==True:
+        import json
+        with open('./../../test/connection_dur_test/recv_msg_sleep_rand', 'a') as logfile:
+            json.dump(value_dict,logfile, indent=4, sort_keys=True,separators=(',', ': '))
+            print('',file=logfile)

@@ -21,12 +21,17 @@ proxy_addr_in = 'tcp://127.0.0.1:5555'
 proxy_addr_out = 'tcp://127.0.0.1:5556'
 
 class Communicator(object):
-    def __init__(self):
+    def __init__(self,core=False):
+        self.core=core
         self.context = zmq.Context.instance()
 
         # connect subscriber to broker's XPUB socket
         self.subscriber = self.context.socket(zmq.SUB)
-        self.subscriber.setsockopt(zmq.SUBSCRIBE, b'')
+        if self.core is True:
+            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'core')
+        else:
+            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'agent')
+
         self.subscriber.connect(proxy_addr_out)
 
         # connect publisher to broker's XSUB socket
@@ -48,7 +53,11 @@ class Communicator(object):
 
     def send(self, message):
 
-        self.publisher.send_string(message)
+        if self.core is True:
+            self.publisher.send_string("%s %s"%('agent',message))
+        else:
+            self.publisher.send_string("%s %s"%('core',message))
+
 
     def close(self):
         self.publisher.close()
