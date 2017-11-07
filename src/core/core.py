@@ -126,6 +126,7 @@ class Core(object):
 
         list_mineral_tag = []
         list_unit_tag = []
+        nexus = []
 
         observation = sc_pb.RequestObservation()
         t = self.comm.send(observation=observation)
@@ -135,6 +136,8 @@ class Core(object):
                 list_unit_tag.append(unit.tag)
             if unit.unit_type == 341:  # Mineral unit_type_tag
                 list_mineral_tag.append(unit.tag)
+            if unit.unit_type == 59:
+                nexus.append(unit.tag)
 
         goal = {'goal': 'gather 100 minerals',
                 'trigger': [],
@@ -160,12 +163,31 @@ class Core(object):
                     )
         print('Agent is running...')
         try:
-            probe.run()
+            while True:
+                """
+                
+                #build_pylon
+                unit_command = raw_pb.ActionRawUnitCommand(ability_id=881)
+                unit_command.unit_tags.append(list_unit_tag[0])
+                unit_command.target_world_space_pos.x = 38
+                unit_command.target_world_space_pos.y = 29
+                action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+                action = sc_pb.RequestAction()
+                action.actions.add(action_raw=action_raw)
+                self.comm.send(action=action)
+                time.sleep(2)
+                
+                
+                #train_probe test
+                unit_command = raw_pb.ActionRawUnitCommand(ability_id=1006)
+                unit_command.unit_tags.append(nexus[0])
+                action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+                action = sc_pb.RequestAction()
+                action.actions.add(action_raw=action_raw)
 
-            #for test
-            self.comm.send(action=probe.act(probe.actions[2]))
-            time.sleep(2)
-            self.comm.send(action=probe.act(probe.actions[3]))
+                self.comm.send(action=action)
+                time.sleep(2)
+                """
 
 
         except KeyboardInterrupt:
