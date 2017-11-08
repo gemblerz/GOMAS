@@ -101,6 +101,17 @@ class Core(object):
         except Exception as ex:
             logger.error('While starting a new game: %s'%str(ex))
 
+    def train_probe(self, nexus_tag):
+        unit_command = raw_pb.ActionRawUnitCommand(ability_id=1006)
+        unit_command.unit_tags.append(nexus_tag)
+        action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+        action = sc_pb.RequestAction()
+        action.actions.add(action_raw=action_raw)
+        self.comm.send(action=action)
+        observation = sc_pb.RequestObservation()
+        t = self.comm.send(observation=observation)
+
+        return  t.observation.observation.raw_data.units[-1].tag
 
     def run(self):
 
@@ -139,6 +150,8 @@ class Core(object):
             if unit.unit_type == 59:
                 nexus.append(unit.tag)
 
+        print(list_unit_tag)
+
         goal = {'goal': 'gather 100 minerals',
                 'trigger': [],
                 'satisfy': [
@@ -163,7 +176,6 @@ class Core(object):
                     )
         print('Agent is running...')
         try:
-            while True:
                 """
                 
                 #build_pylon
@@ -184,7 +196,6 @@ class Core(object):
                 action_raw = raw_pb.ActionRaw(unit_command=unit_command)
                 action = sc_pb.RequestAction()
                 action.actions.add(action_raw=action_raw)
-
                 self.comm.send(action=action)
                 time.sleep(2)
                 """

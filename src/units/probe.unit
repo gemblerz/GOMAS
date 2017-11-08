@@ -35,11 +35,9 @@
           target: unit
           unit_tag: 0
 
-    #according to building ID, action id id diff(880~910)
-    - id: 880 
-      name: build
+    - id: 881
+      name: build_pylon
       require:
           target: point
           location_x: 0
           location_y: 0
-          building: 0
