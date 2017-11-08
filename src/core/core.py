@@ -136,21 +136,21 @@ class Core(object):
         """
 
         list_mineral_tag = []
-        list_unit_tag = []
-        nexus = []
+        list_agent_tag = []
+        nexus_tag = []
 
         observation = sc_pb.RequestObservation()
         t = self.comm.send(observation=observation)
 
         for unit in t.observation.observation.raw_data.units:
             if unit.unit_type == 84:  # Probe unit_type_tag
-                list_unit_tag.append(unit.tag)
+                list_agent_tag.append(unit.tag)
             if unit.unit_type == 341:  # Mineral unit_type_tag
                 list_mineral_tag.append(unit.tag)
             if unit.unit_type == 59:
-                nexus.append(unit.tag)
+                nexus_tag.append(unit.tag)
 
-        print(list_unit_tag)
+        print(list_agent_tag)
 
         goal = {'goal': 'gather 100 minerals',
                 'trigger': [],
@@ -167,7 +167,7 @@ class Core(object):
 
 
         probe = Agent()
-        probe.spawn(list_unit_tag[0], 84,
+        probe.spawn(list_agent_tag[0], 84,
                     initial_knowledge=[
                         ('type1', 'my_name', ['probe']),
                         ('type2', 'i', 'say', ['my_name']),
