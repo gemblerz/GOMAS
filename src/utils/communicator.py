@@ -30,7 +30,8 @@ class Communicator(object):
         if self.core is True:
             self.subscriber.setsockopt(zmq.SUBSCRIBE, b'core')
         else:
-            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'agent')
+            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'')
+            self.subscriber.setsockopt(zmq.UNSUBSCRIBE, b'core')
 
         self.subscriber.connect(proxy_addr_out)
 

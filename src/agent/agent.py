@@ -12,6 +12,7 @@
 import sys
 import time
 import logging
+import threading
 sys.path.append('../')
 from units import units
 from utils.communicator import Communicator
@@ -34,7 +35,7 @@ class MentalState(object):
     def __init__(self):
         self.state = 'idle'
 
-class Agent(object):
+class Agent(threading.Thread):
     def __init__(self):
         self.discrete_time_step = 1 # sec
         self.alive = False
@@ -52,6 +53,8 @@ class Agent(object):
         self.goals = goals
 
     def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
+        logging.info(spawn_id + ' is being spawned...')
+
         assert unit_id in units
 
         # Identifier for the unit
@@ -72,6 +75,10 @@ class Agent(object):
 
         # Give it a life
         self.alive = True
+
+        # Set individual Thread
+        threading.Thread.__init__(self)
+        logging.info(spawn_id + ' has spawned.')
 
     def load_unit(self, spec):
         self.id = spec['id']

@@ -5,7 +5,7 @@
 """
 
 import logging
-import zmq
+import threading
 import os
 import time
 import sys
@@ -13,11 +13,11 @@ sys.path.append('../agent')
 from agent import Agent
 from goal import Goal, create_goal_set
 
-from units import units
-
 from sc2_comm import sc2
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
+
+from utils.communicator import Communicator, proxy
 
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class Core(object):
 
     def __init__(self):
-        self.comm = sc2()
+        self.comm_sc2 = sc2()
         self.port = 5000
 
         if sys.platform == "darwin": # Mac OS X
@@ -43,6 +43,13 @@ class Core(object):
         else:
             logger.error("Sorry, we cannot start on your OS.")
 
+        # Communicator between the core and agents.
+        self.comm_agents = Communicator(core=True)
+
+        # Set the Proxy and Agents Threads.
+        self.thread_proxy=threading.Thread(target=proxy)
+        self.threads_agents=[]
+
     def init(self):
 
         # execute SC2 client.
@@ -55,7 +62,7 @@ class Core(object):
             logger.error("Failed to open sc2.")
 
         #connection between core and sc2_client using sc2 protobuf.
-        self.comm.open()
+        self.comm_sc2.open()
 
     def deinit(self):
         pass
@@ -69,12 +76,12 @@ class Core(object):
             map_info.map_path = self.map_path
             create_game = sc_pb.RequestCreateGame(local_map=map_info)
             create_game.player_setup.add(type=1)
-            create_game.player_setup.add(type=2)
+            # create_game.player_setup.add(type=2)
 
             create_game.realtime = True
 
             # send Request
-            print(self.comm.send(create_game=create_game))
+            print(self.comm_sc2.send(create_game=create_game))
             # print (test_client.comm.read())
 
             logger.info('New game is created.')
@@ -87,7 +94,7 @@ class Core(object):
             join_game = sc_pb.RequestJoinGame(race=3, options=interface_options)
 
             # send Request
-            print(self.comm.send(join_game=join_game))
+            print(self.comm_sc2.send(join_game=join_game))
 
             logger.info('Success to join the game.')
         except Exception as ex:
@@ -95,7 +102,7 @@ class Core(object):
 
         # Game Start
         try:
-            print(self.comm.send(step=sc_pb.RequestStep(count=1)))
+            print(self.comm_sc2.send(step=sc_pb.RequestStep(count=1)))
 
             logger.info('Game is Started.')
         except Exception as ex:
@@ -107,40 +114,27 @@ class Core(object):
         action_raw = raw_pb.ActionRaw(unit_command=unit_command)
         action = sc_pb.RequestAction()
         action.actions.add(action_raw=action_raw)
-        self.comm.send(action=action)
+        self.comm_sc2.send(action=action)
         observation = sc_pb.RequestObservation()
-        t = self.comm.send(observation=observation)
+        t = self.comm_sc2.send(observation=observation)
 
         return  t.observation.observation.raw_data.units[-1].tag
+
+    def _start_proxy(self):
+        self.thread_proxy.start()
+        time.sleep(1) # wait for turn on proxy
 
     def run(self):
 
         self._start_new_game()
-
-        """
-        goal = {'goal': 'introduce myself',
-                'require': [
-                    ['say', {'words': 'hello'}],
-                    {'goal': 'say hello',
-                     'require': [
-                         ['say', {'words': 'myname'}],
-                         ['say', {'words': 'hehe'}],
-                         {'goal': 'say hajime',
-                          'require': [
-                              ['say', {'words': 'hajime'}]
-                          ]}
-                     ]
-                     }
-                ]
-                }
-        """
+        self._start_proxy()
 
         list_mineral_tag = []
         list_agent_tag = []
         nexus_tag = []
 
         observation = sc_pb.RequestObservation()
-        t = self.comm.send(observation=observation)
+        t = self.comm_sc2.send(observation=observation)
 
         for unit in t.observation.observation.raw_data.units:
             if unit.unit_type == 84:  # Probe unit_type_tag
@@ -165,8 +159,8 @@ class Core(object):
 
                 }
 
-
         probe = Agent()
+
         probe.spawn(list_agent_tag[0], 84,
                     initial_knowledge=[
                         ('type1', 'my_name', ['probe']),
@@ -174,9 +168,12 @@ class Core(object):
                     ],
                     initial_goals=[create_goal_set(goal)]
                     )
+        self.threads_agents.append(probe)
+
         print('Agent is running...')
         try:
-                """
+            self.threads_agents[0].start()
+            """
                 
                 #build_pylon
                 unit_command = raw_pb.ActionRawUnitCommand(ability_id=881)
@@ -198,12 +195,17 @@ class Core(object):
                 action.actions.add(action_raw=action_raw)
                 self.comm.send(action=action)
                 time.sleep(2)
-                """
+            """
 
 
         except KeyboardInterrupt:
             pass
         probe.destroy()
+
+        # Wait for all threads exit
+        for threads in self.threads_agent:
+            threads.join()
+
         print('The agent is terminated.')
 
 
