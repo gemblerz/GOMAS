@@ -13,6 +13,8 @@
 import sys
 import time
 import logging
+from datetime import datetime
+
 sys.path.append('../')
 from units import units
 from utils.communicator import Communicator
@@ -35,6 +37,9 @@ class MentalState(object):
     def __init__(self):
         self.state = 'idle'
 
+    def change_state(self):
+        self.state = 'working'
+
 class Agent(object):
     def __init__(self):
         self.discrete_time_step = 1 # sec
@@ -44,10 +49,12 @@ class Agent(object):
         self.actions = get_basic_actions()
         self.knowledge = []
         self.goals = []
+        self.messages = []
 
     def _load_knowledge(self, knowledge):
         for k in knowledge:
-            self.knowledge.append(Knowledge(k))
+            self.tuple_to_knowledge(k)
+            #self.knowledge.append(k)
 
     def _load_goals(self, goals):
         self.goals = goals
@@ -57,6 +64,7 @@ class Agent(object):
 
         # Identifier for the unit
         self.spawn_id = spawn_id
+        print("{} is spawned".format(spawn_id))
 
         # Load basic characteristics of the unit
         self.load_unit(units[unit_id])
@@ -102,8 +110,8 @@ class Agent(object):
     '''
         Communication to other agents
     '''
-    def init_comm_agents(self):
-        self.comm_agents = Communicator(self.id)
+    def init_comm_agents(self, core=False):
+        self.comm_agents = Communicator(core)
 
     def deinit_comm_agents(self):
         # It may need to send 'good bye' to others
@@ -126,19 +134,62 @@ class Agent(object):
 
         # Perceive from other agents
         message = self.comm_agents.read()
+        #msg = 'Dummy is working'
+        #self.msg_to_knowledge(msg)
+        self.msg_to_knowledge(message)
+        self.messages.append(message)
+
+        """
         if message:
             # Put the message into knowledge base
-            #self.knowledge
+            self.knowledge.append(message)
+        """
+
+    """
+        Change msg to Knowledge
+    """
+    def msg_to_knowledge(self, message):
+        splited_msg = message.split()
+        tuple_msg = tuple(splited_msg)
+        if splited_msg is not None:
+            if len(splited_msg) == 2:
+                self.knowledge.append(Knowledge('type1', tuple_msg[0], [tuple_msg[1]]))
+            elif len(splited_msg) == 3:
+                self.knowledge.append(Knowledge('type2', tuple_msg[0], tuple_msg[1], [tuple_msg[2]]))
+            else:
+                pass
+        else:
             pass
+
+    """
+        Change tuple to Knowledge
+    """
+    def tuple_to_knowledge(self, tuple_msg):
+        if tuple_msg is not None:
+            if len(tuple_msg) == 3:
+                self.knowledge.append(Knowledge(tuple_msg[0], tuple_msg[1], tuple_msg[2]))
+            elif len(tuple_msg) == 4:
+                self.knowledge.append(Knowledge(tuple_msg[0], tuple_msg[1], tuple_msg[2], tuple_msg[3]))
+            else:
+                pass
+        else:
+            pass
+
+
 
     '''
         Information / actions going to simulator
     '''
-    def act(self, action):
-        logger.info('%s is performing %s' % (self.name, action))
-        if action.__name__ == 'say':
-            words = action.require['words']
-            self.tell(words, 'dummy')
+    def act(self, action, task):
+        self.state.change_state()
+        task.state = 'Active'
+        logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
+        if action.__name__ == 'move':
+            words = action.require['target'] + " " + str(action.require['pos_x']) + " " + str(action.require['pos_y'])
+            self.tell(words)
+        elif action.__name__ == 'gather':
+            words = action.require['target'] + " " + action.require['unit_tag']
+            self.tell(words)
         else:
             action.perform()
         return True
@@ -146,9 +197,11 @@ class Agent(object):
     '''
         Delivering information to other agents
     '''
-    def tell(self, statement, who):
-        logger.info('I am telling %s to %s' % (statement, who))
-        self.comm_agents.send(who, statement)
+    def tell(self, statement):
+        logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
+        msg = str(self.spawn_id) + " is " + self.state.state
+        self.comm_agents.send(msg)
+
 
     '''
         Query to other agents
@@ -213,7 +266,7 @@ class Agent(object):
     def run(self):
         while self.alive:
             # For debugging
-            logger.info('%s is ticking' % (self.name,))
+            logger.info('%s %d is ticking' % (self.name, self.spawn_id))
             print()
             # Check if something to answer
             # query = self.check_being_asked():
@@ -229,8 +282,19 @@ class Agent(object):
 
             #check every goal whether now achieved.
             for goal in self.goals:
-                print('>> Start checking goal tree... root goal is', goal.name)
+                print('>> {} Start checking goal tree... root goal is "{}"'.format(self.spawn_id, goal.name))
                 goal.can_be_achieved()
+
+            print("## "+ str(self.spawn_id) + "'s knowledge:")
+            for k in self.knowledge:
+                print(k)
+
+            print("## "+ str(self.spawn_id) + "'s messages:")
+            for m in self.messages:
+                print(m)
+
+            if self.state.state == 'working':
+                continue
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge)
@@ -240,7 +304,7 @@ class Agent(object):
                 #if : check the start condition(assinged? available? ) -> check goal instance in knowledge base
                 #selected_goal.goal_state = 'active'
                 print('>> Now tring to do %s' % (selected_action)) #Active
-                if not self.act(selected_action):
+                if not self.act(selected_action, selected_task):
                     # Action failed, put the goal back to the queue
                     selected_task.state = 'failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
                     #self.goals.append(selected_goal) 일단은 append하지 말고 그냥 failed로 둡시다..... available한 goal로 그냥 두기
@@ -251,6 +315,7 @@ class Agent(object):
                     print('>>', selected_task.__name__, 'is Done')
 
             else:
+                print(">> %d's selected action is None: Destroy" % (self.spawn_id))
                 break
             # May need to tell others the action that is about to be performed
             # self.tell('%d performs %s' % (self.id, action))
@@ -258,6 +323,7 @@ class Agent(object):
             # May tell others the action has performed
 
             # Sleep a while to prevent meaningless burst looping
+            self.state.__init__()
             time.sleep(self.discrete_time_step)
 
         # Stopped thinking
@@ -269,6 +335,7 @@ class Agent(object):
 '''
 if __name__ == '__main__':
 
+    """
     goal = {'goal': 'introduce myself',
             'require': [
                 ['say', {'words': 'hello'}],
@@ -282,6 +349,19 @@ if __name__ == '__main__':
                       ]}
                  ]
                  }
+            ]
+            }
+    """
+
+    goal = {'goal': 'gather 100 minerals',
+            'trigger': [],
+            'satisfy': [
+                ('type2', 'i', 'have', ['100 minerals'])
+            ],
+            'precedent': [],
+            'require': [
+                ['move', {'target': 'point', 'pos_x': 10, 'pos_y': 10}],
+                ['gather', {'target': 'unit', 'unit_tag': 'list_mineral_tag[0]'}],
             ]
             }
 

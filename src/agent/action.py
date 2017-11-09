@@ -31,7 +31,7 @@ class Action(object):
         return 'Action %s with id %d requires %s ' % (self.__name__, self.sc2_id, self.require)
 
     def set_arguments(self, args):
-        self.require.update(args)
+        self.require = args
 
     def can_perform(self, task_name):
         if task_name == self.__name__:
