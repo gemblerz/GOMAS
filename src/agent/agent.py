@@ -12,6 +12,7 @@
 import sys
 import time
 import logging
+import threading
 sys.path.append('../')
 from units import units
 from utils.communicator import Communicator
@@ -34,8 +35,11 @@ class MentalState(object):
     def __init__(self):
         self.state = 'idle'
 
-class Agent(object):
+class Agent(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
+
+
         self.discrete_time_step = 1 # sec
         self.alive = False
         self.state = MentalState()
@@ -52,6 +56,8 @@ class Agent(object):
         self.goals = goals
 
     def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
+        logging.info(str(spawn_id) + ' is being spawned...')
+
         assert unit_id in units
 
         # Identifier for the unit
@@ -72,6 +78,8 @@ class Agent(object):
 
         # Give it a life
         self.alive = True
+
+        logging.info(str(spawn_id) + ' has spawned.')
 
     def load_unit(self, spec):
         self.id = spec['id']
@@ -102,7 +110,8 @@ class Agent(object):
         Communication to other agents
     '''
     def init_comm_agents(self):
-        self.comm_agents = Communicator(self.spawn_id)
+        #self.comm_agents = Communicator(self.spawn_id)
+        self.comm_agents = Communicator()
 
     def deinit_comm_agents(self):
         # It may need to send 'good bye' to others
@@ -116,6 +125,8 @@ class Agent(object):
         self.deinit_comm_env()
         self.deinit_comm_agents()
         self.alive = False
+
+        self.join()
 
     '''
         Sense information from its surroundings and other agents
@@ -139,7 +150,10 @@ class Agent(object):
             words = action.require['words']
             self.tell(str(self.spawn_id)+words, 'dummy')
         else:
-            action.perform()
+            req=action.perform(self.spawn_id)
+            self.comm_agents.send(req)
+
+            return req
         return True
 
     '''

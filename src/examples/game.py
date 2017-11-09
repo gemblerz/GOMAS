@@ -11,38 +11,7 @@ from core import Core
 # Try to make a connection with SC2
 test_client = Core()
 test_client.init()
-
-"""Create Game"""
-#Make Request(CreateGame)
-
-
-map_info = sc_pb.LocalMap()
-#Windows
-#map_info.map_path = "C:\Program Files (x86)\StarCraft II\Maps\Melee\Simple128.SC2Map"
-#Mac
-map_info.map_path = "/Applications/StarCraft II/Maps/Melee/Simple128.SC2Map"
-create_game = sc_pb.RequestCreateGame(local_map = map_info)
-create_game.player_setup.add(type=1)
-create_game.player_setup.add(type=2)
-
-create_game.realtime = True
-print("Make")
-#send Request
-print(test_client.comm.send(create_game = create_game))
-#print (test_client.comm.read())
-"""Join Game"""
-#Make Requst(JoinGame)
-
-interface_options = sc_pb.InterfaceOptions(raw = True, score = True)
-join_game = sc_pb.RequestJoinGame(race = 3, options = interface_options)
-
-#send Request
-test_client.comm.send(join_game=join_game)
-#print (test_client.comm.read())
-
-#Game Start
-print(test_client.comm.send(step = sc_pb.RequestStep(count = 1)))
-#print (test_client.comm.read())
+test_client._start_new_game()
 
 #Get Data
 """
@@ -107,45 +76,52 @@ test_client.comm.send(action=action)
 """
 
 """Gather Mules"""
-unit_tag_list=[]
-observation = sc_pb.RequestObservation()
-t=test_client.comm.send(observation=observation)
 
+list_unit_tag = []
+list_mineral_tag = []
+observation = sc_pb.RequestObservation()
+t = test_client.comm.send(observation=observation)
+
+# make list of units_tags for probe and mineral
 for unit in t.observation.observation.raw_data.units:
-    if unit.unit_type == 84: # Probe unit_type_tag
-        unit_tag_list.append(unit.tag)
+    if unit.unit_type == 84:  # Probe unit_type_tag
+        list_unit_tag.append(unit.tag)
+    if unit.unit_type == 341:  # Mineral unit_type_tag
+        list_mineral_tag.append(unit.tag)
 
 unit_command = raw_pb.ActionRawUnitCommand()
-unit_command.ability_id = 166 # Gather Mule
-action_raw = raw_pb.ActionRaw(unit_command = unit_command)
+unit_command.ability_id = 166  # Gather Mule]
 
-#12 units keep gettering mules until minerals are over 200
-while True:
+for unit_tag in list_unit_tag:
+    unit_command.unit_tags.append(unit_tag)
 
-    #Ask keep going gether minerals
-    action = sc_pb.RequestAction()
-    action.actions.add(action_raw=action_raw)
-    test_client.comm.send(action=action)
-
-    #request information about collected_minerals
-    get_mineral = test_client.comm.send(observation=observation)
-    collected_minerals = get_mineral.observation.observation.score.score_details.collected_minerals
-    print(collected_minerals)
-
-    #if collected_minerals are over 200, all units is stop
-    if collected_minerals >= 200:
-        break
-
-print ("Stop")
-unit_command.ability_id = 4 # Stop Ability
-
-for i in range(0,12):
-    unit_command.unit_tags.append(unit_tag_list[i])
+unit_command.target_unit_tag = list_mineral_tag[0]
 
 action_raw = raw_pb.ActionRaw(unit_command=unit_command)
 action = sc_pb.RequestAction()
 action.actions.add(action_raw=action_raw)
 test_client.comm.send(action=action)
 
+# 12 units keep gethering mules until minerals are over 200
+while True:
+
+    # request information about collected_minerals
+    get_mineral = test_client.comm.send(observation=observation)
+    collected_minerals = get_mineral.observation.observation.score.score_details.collected_minerals
+    print(collected_minerals)
+
+    # if collected_minerals are over 200, all units is stop
+    if collected_minerals >= 50:
+        break
+print ("Stop")
+unit_command = raw_pb.ActionRawUnitCommand()
+unit_command.ability_id = 4  # Stop Ability
+for unit_tag in list_unit_tag:
+    unit_command.unit_tags.append(unit_tag)
+
+action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+action.actions.add(action_raw=action_raw)
+
+test_client.comm.send(action=action)
 
 #conn.close()
