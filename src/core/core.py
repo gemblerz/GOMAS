@@ -9,6 +9,7 @@ import threading
 import os
 import time
 import sys
+import json
 sys.path.append('../agent')
 from agent import Agent
 from goal import Goal, create_goal_set
@@ -18,6 +19,8 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
 
 from utils.communicator import Communicator, proxy
+
+from google.protobuf import json_format
 
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -132,6 +135,10 @@ class Core(object):
         #print(t.observation.observation.player_common.minerals)
         return t.observation.observation.player_common.minerals
 
+    def perceive_request(self):
+        return self.comm_agents.read()
+
+
     def run(self):
 
         self._start_new_game()
@@ -210,15 +217,28 @@ class Core(object):
             pass
 
         while True:
-            self.request_amount_of_mules()
-            time.sleep(10)
+            minerals=self.request_amount_of_mules()
+            if minerals>=100:
+                for probe in self.threads_agents:
+                    probe.destroy()
+                break
+
+            req=self.perceive_request()
+            if req != '':
+                req=req[5:]
+                req=json_format.Parse(req,sc_pb.RequestAction())
+                #json.loads(req)
+                self.comm_sc2.send(action=req)
+
+            time.sleep(1)
 
 
         # Wait for all threads exit
-        for threads in self.threads_agents:
-            threads.join()
+        #for threads in self.threads_agents:
+        #    threads.join()
 
-        probe.destroy()
+        #probe.destroy()
+        print("Test Complete")
         self.comm_agents.context.term()
 
 

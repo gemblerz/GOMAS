@@ -1,6 +1,9 @@
 
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
+
+from google.protobuf.json_format import MessageToJson
+
 """
     Action class
     This lists all possible actions of a unit
@@ -58,7 +61,11 @@ class Action(object):
         action = sc_pb.RequestAction()
         action.actions.add(action_raw=action_raw)
 
-        return action
+        msg=MessageToJson(action)
+
+        print(type(msg))
+
+        return msg
         # Perform the action in real
 
 

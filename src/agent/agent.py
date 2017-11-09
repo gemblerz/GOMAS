@@ -126,6 +126,8 @@ class Agent(threading.Thread):
         self.deinit_comm_agents()
         self.alive = False
 
+        self.join()
+
     '''
         Sense information from its surroundings and other agents
     '''
@@ -148,7 +150,10 @@ class Agent(threading.Thread):
             words = action.require['words']
             self.tell(str(self.spawn_id)+words, 'dummy')
         else:
-            return action.perform(self.spawn_id)
+            req=action.perform(self.spawn_id)
+            self.comm_agents.send(req)
+
+            return req
         return True
 
     '''
