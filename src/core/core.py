@@ -9,7 +9,6 @@ import threading
 import os
 import time
 import sys
-import json
 sys.path.append('../agent')
 from agent import Agent
 from goal import Goal, create_goal_set
@@ -139,6 +138,9 @@ class Core(object):
         return self.comm_agents.read()
 
 
+    '''
+        The Main Part of Core.
+    '''
     def run(self):
 
         self._start_new_game()

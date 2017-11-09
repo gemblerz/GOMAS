@@ -36,8 +36,7 @@ class Communicator(object):
         if self.core is True:
             self.subscriber.setsockopt(zmq.SUBSCRIBE, b'core')
         else:
-            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'')
-            self.subscriber.setsockopt(zmq.UNSUBSCRIBE, b'core')
+            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'broadcasting')
 
         self.subscriber.connect(proxy_addr_out)
 
@@ -58,13 +57,14 @@ class Communicator(object):
             pass
         return message
 
-    def send(self, message):
+    def send(self, message, broadcast=False, who=''):
 
-        if self.core is True:
-            self.publisher.send_string("%s %s"%('agent',message))
+        if broadcast is True:
+            self.publisher.send_string("%s %s"%('broadcasting',message))
+        elif who != '':
+            self.publisher.send_string("%s %s"%(who,message))
         else:
-            self.publisher.send_string("%s %s"%('core',message))
-
+            logging.error("Doesn't set the target to send msg!")
 
     def close(self):
         self.publisher.close()
