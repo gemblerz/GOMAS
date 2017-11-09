@@ -108,6 +108,11 @@ class Core(object):
         except Exception as ex:
             logger.error('While starting a new game: %s'%str(ex))
 
+    def _start_proxy(self):
+        logger.info("Try to turn on proxy...")
+        self.thread_proxy.start()
+        time.sleep(1) # wait for turn on proxy
+
     def train_probe(self, nexus_tag):
         unit_command = raw_pb.ActionRawUnitCommand(ability_id=1006)
         unit_command.unit_tags.append(nexus_tag)
@@ -120,9 +125,12 @@ class Core(object):
 
         return  t.observation.observation.raw_data.units[-1].tag
 
-    def _start_proxy(self):
-        self.thread_proxy.start()
-        time.sleep(1) # wait for turn on proxy
+    def request_amount_of_mules(self):
+        observation = sc_pb.RequestObservation()
+        t = self.comm_sc2.send(observation=observation)
+
+        #print(t.observation.observation.player_common.minerals)
+        return t.observation.observation.player_common.minerals
 
     def run(self):
 
@@ -164,7 +172,7 @@ class Core(object):
         probe.spawn(list_agent_tag[0], 84,
                     initial_knowledge=[
                         ('type1', 'my_name', ['probe']),
-                        ('type2', 'i', 'say', ['my_name']),
+                        ('type2', 'i', 'have', ['0 minerals']),
                     ],
                     initial_goals=[create_goal_set(goal)]
                     )
@@ -200,11 +208,19 @@ class Core(object):
 
         except KeyboardInterrupt:
             pass
-        probe.destroy()
+
+        while True:
+            self.request_amount_of_mules()
+            time.sleep(10)
+
 
         # Wait for all threads exit
-        for threads in self.threads_agent:
+        for threads in self.threads_agents:
             threads.join()
+
+        probe.destroy()
+        self.comm_agents.context.term()
+
 
         print('The agent is terminated.')
 

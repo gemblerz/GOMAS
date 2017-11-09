@@ -37,6 +37,9 @@ class MentalState(object):
 
 class Agent(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
+
+
         self.discrete_time_step = 1 # sec
         self.alive = False
         self.state = MentalState()
@@ -53,7 +56,7 @@ class Agent(threading.Thread):
         self.goals = goals
 
     def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
-        logging.info(spawn_id + ' is being spawned...')
+        logging.info(str(spawn_id) + ' is being spawned...')
 
         assert unit_id in units
 
@@ -76,9 +79,7 @@ class Agent(threading.Thread):
         # Give it a life
         self.alive = True
 
-        # Set individual Thread
-        threading.Thread.__init__(self)
-        logging.info(spawn_id + ' has spawned.')
+        logging.info(str(spawn_id) + ' has spawned.')
 
     def load_unit(self, spec):
         self.id = spec['id']

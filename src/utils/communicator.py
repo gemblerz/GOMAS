@@ -15,6 +15,12 @@
 
 import zmq
 import time
+import logging
+
+FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
+
 
 # Broker's addresses
 proxy_addr_in = 'tcp://127.0.0.1:5555'
@@ -63,7 +69,6 @@ class Communicator(object):
     def close(self):
         self.publisher.close()
         self.subscriber.close()
-        self.context.term()
 
 # Proxy server acts Broker to transfer msg from all agents to all agents.
 def proxy():
@@ -77,6 +82,7 @@ def proxy():
     socket_out.bind(addr_out)
 
     try:
+        logger.info("proxy is started.")
         zmq.proxy(socket_in, socket_out)
     except zmq.ContextTerminated:
         print("proxy terminated")
