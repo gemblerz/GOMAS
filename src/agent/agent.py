@@ -119,6 +119,7 @@ class Agent(threading.Thread):
 
     '''
         Destroy myself
+        Assumption : When the agent check that the goal is achieved, destory itself.
     '''
     def destroy(self):
         # Close communications
@@ -151,7 +152,7 @@ class Agent(threading.Thread):
             self.tell(str(self.spawn_id)+words, 'dummy')
         else:
             req=action.perform(self.spawn_id)
-            self.comm_agents.send(req)
+            self.comm_agents.send(req, who='core')
 
             return req
         return True
