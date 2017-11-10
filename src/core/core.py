@@ -56,6 +56,7 @@ class Core(object):
         self.dict_probe = {}
         self.dict_mineral = {}
         self.dict_nexus = {}
+        self.next_pylon_pos=(27,33)
 
     def init(self):
 
@@ -282,7 +283,7 @@ class Core(object):
             data['nexus']=self.dict_nexus
 
             json_string=json.dumps(data)
-            self.broadcast(data)
+            self.broadcast(json_string)
 
             if minerals>=500: # End option <- Should be delete
 
