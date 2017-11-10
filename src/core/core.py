@@ -5,20 +5,22 @@
 """
 
 import logging
-import zmq
+import threading
 import os
 import time
-
 import sys
+import json
 sys.path.append('../agent')
 from agent import Agent
 from goal import Goal, create_goal_set
 
-from units import units
-
 from sc2_comm import sc2
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
+
+from utils.communicator import Communicator, proxy
+
+from google.protobuf import json_format
 
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -27,14 +29,14 @@ logger = logging.getLogger(__name__)
 class Core(object):
 
     def __init__(self):
-        self.comm = sc2()
+        self.comm_sc2 = sc2()
         self.port = 5000
 
         if sys.platform == "darwin": # Mac OS X
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher\
                                   --listen 127.0.0.1\
                                   --port %s"%self.port
-            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap.SC2Map'
+            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap_solo.SC2Map'
 
         elif sys.platform == "win32": # Windows
             pass
@@ -43,6 +45,18 @@ class Core(object):
 
         else:
             logger.error("Sorry, we cannot start on your OS.")
+
+        # Communicator between the core and agents.
+        self.comm_agents = Communicator(core=True)
+
+        # Set the Proxy and Agents Threads.
+        self.thread_proxy = threading.Thread(target=proxy)
+        self.threads_agents = []
+
+        self.dict_probe = {}
+        self.dict_mineral = {}
+        self.dict_nexus = {}
+        self.next_pylon_pos=(27,33)
 
     def init(self):
 
@@ -56,11 +70,25 @@ class Core(object):
             logger.error("Failed to open sc2.")
 
         #connection between core and sc2_client using sc2 protobuf.
-        self.comm.open()
+        self.comm_sc2.open()
 
     def deinit(self):
-        pass
+        self.comm_agents.close()
+        self.comm_sc2.close()
 
+    '''
+        Collection of Requests to SC2 client.
+        
+            Includes,
+            - _start_new_game
+                    After starting SC2 client, to start the game, we have to select the map and request to open the game.
+                    Set the game configuration, and request to join that game.
+            - _leave_game :
+            - _quit_sc2 : 
+            - _train_probe :
+            - _build_pylon :
+            - _req_playerdata :
+    '''
     def _start_new_game(self):
 
         # create a game
@@ -70,12 +98,12 @@ class Core(object):
             map_info.map_path = self.map_path
             create_game = sc_pb.RequestCreateGame(local_map=map_info)
             create_game.player_setup.add(type=1)
-            create_game.player_setup.add(type=2)
+            # create_game.player_setup.add(type=2)
 
             create_game.realtime = True
 
             # send Request
-            print(self.comm.send(create_game=create_game))
+            print(self.comm_sc2.send(create_game=create_game))
             # print (test_client.comm.read())
 
             logger.info('New game is created.')
@@ -88,7 +116,7 @@ class Core(object):
             join_game = sc_pb.RequestJoinGame(race=3, options=interface_options)
 
             # send Request
-            print(self.comm.send(join_game=join_game))
+            print(self.comm_sc2.send(join_game=join_game))
 
             logger.info('Success to join the game.')
         except Exception as ex:
@@ -96,69 +124,193 @@ class Core(object):
 
         # Game Start
         try:
-            print(self.comm.send(step=sc_pb.RequestStep(count=1)))
+            #print(self.comm_sc2.send(step=sc_pb.RequestStep(count=1)))
 
             logger.info('Game is Started.')
         except Exception as ex:
             logger.error('While starting a new game: %s'%str(ex))
 
+    def _leave_game(self):
+        print(self.comm_sc2.send(leave_game=sc_pb.RequestLeaveGame()))
+        logger.info('Leave the Game.')
 
+    def _quit_sc2(self):
+        print(self.comm_sc2.send(quit=sc_pb.RequestQuit()))
+        logger.info("Quit the SC2 client")
+
+    def _train_probe(self, nexus_tag):
+
+        unit_command = raw_pb.ActionRawUnitCommand(ability_id=1006)
+        unit_command.unit_tags.append(nexus_tag)
+        action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+        action = sc_pb.RequestAction()
+        action.actions.add(action_raw=action_raw)
+        t = self.comm_sc2.send(action=action)
+
+    def _build_pylon(self, probe_tag):
+        # build_pylon
+        unit_command = raw_pb.ActionRawUnitCommand(ability_id=881)
+        unit_command.unit_tags.append(probe_tag)
+        unit_command.target_world_space_pos.x = 38
+        unit_command.target_world_space_pos.y = 29
+        action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+        action = sc_pb.RequestAction()
+        action.actions.add(action_raw=action_raw)
+        self.comm_sc2.send(action=action)
+
+    def _req_playerdata(self):
+        observation = sc_pb.RequestObservation()
+        t = self.comm_sc2.send(observation=observation)
+
+        for unit in t.observation.observation.raw_data.units:
+
+            if unit.unit_type == 84: # Probe tag
+
+                # Already exists
+                if unit.tag in self.dict_probe:
+                    self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
+                else:
+                    # new probe
+                    self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
+
+                    # new thread starts -> spawn a new probe.
+                    self.threads_agents.append(Agent())
+                    self.threads_agents[-1].spawn(unit.tag, 84,
+                                        initial_knowledge=[
+                                        ('type1', 'my_name', ['probe']),
+                                        ('type2', 'i', 'have', ['0 minerals']),
+                                        ],
+                                        initial_goals=[create_goal_set(self.goal)]
+                                    )
+
+                    self.threads_agents[-1].start()
+
+            if unit.unit_type == 341: # Mineral tag
+
+                # Already exists
+                if unit.tag in self.dict_mineral:
+                    self.dict_mineral[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
+                else:
+                    # new pylon
+                    self.dict_mineral[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
+
+            if unit.unit_type == 59:
+                # Already exists
+                if unit.tag in self.dict_mineral:
+                    self.dict_nexus[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
+                else:
+                    # new nexus
+                    self.dict_nexus[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
+
+
+
+        minerals = t.observation.observation.player_common.minerals
+        food_cap = t.observation.observation.player_common.food_cap
+        food_used = t.observation.observation.player_common.food_used
+        print('Minerals: ',minerals)
+        print('Population: %d/%d'%(food_used,food_cap))
+        return (minerals,food_cap,food_used)
+
+
+    '''
+        Connection methods to broadast and receive msg.
+        
+            Includes,
+            - _start_proxy : Start the proxy that is broker among the agents, also between core and agents.
+
+            - broadcast
+            - perceive_request
+    '''
+    def _start_proxy(self):
+        logger.info("Try to turn on proxy...")
+        self.thread_proxy.start()
+        time.sleep(1) # wait for turn on proxy
+
+    def broadcast(self,msg):
+        self.comm_agents.send(msg,broadcast=True)
+
+    def perceive_request(self):
+        return self.comm_agents.read()
+
+    def set_goal(self):
+        observation = sc_pb.RequestObservation()
+        t = self.comm_sc2.send(observation=observation)
+
+        list_minerals=[]
+
+        for unit in t.observation.observation.raw_data.units:
+            if unit.unit_type == 341:  # Mineral tag
+                list_minerals.append(unit.tag)
+
+
+
+        self.goal = {'goal': 'gather 100 minerals',
+                     'trigger': [],
+                     'satisfy': [
+                         ('type2', 'i', 'have', ['100 minerals'])
+                     ],
+                     'precedent': [],
+                     'require': [
+                         ['move', {'target': 'point', 'pos_x': 10, 'pos_y': 10}],
+                         ['gather', {'target': 'unit', 'unit_tag': list_minerals[0]}],  # target: unit
+                     ]
+
+                     }
+
+
+    '''
+        The Main Part of Core.
+    '''
     def run(self):
 
         self._start_new_game()
+        self._start_proxy()
+        self.set_goal()
 
-        list_unit_tag = []
-        observation = sc_pb.RequestObservation()
-        t = self.comm.send(observation=observation)
+        while True:
 
-        for unit in t.observation.observation.raw_data.units:
-            if unit.unit_type == 84:  # Probe unit_type_tag
-                list_unit_tag.append(unit.tag)
+            logger.info('%s is ticking' % ('core'))
 
-        action=raw_pb.ActionRawUnitCommand(ability_id=4)
-        action.unit_tags.append(list_unit_tag[0])
-        action_raw = raw_pb.ActionRaw(unit_command=action)
+            minerals,food_cap,food_used=self._req_playerdata()
 
-        action = sc_pb.RequestAction()
-        action.actions.add(action_raw=action_raw)
-        self.comm.send(action=action)
+            # Tell game data to everyone.
+            data = {}
+            data['has_minerals']=minerals
+            data['food_cap']=food_cap
+            data['food_used']=food_used
+            data['probe']=self.dict_probe
+            data['minerals']=self.dict_mineral
+            data['nexus']=self.dict_nexus
 
-        goal = {'goal': 'introduce myself',
-                'require': [
-                    ['say', {'words': 'hello'}],
-                    {'goal': 'say hello',
-                     'require': [
-                         ['say', {'words': 'myname'}],
-                         ['say', {'words': 'hehe'}],
-                         {'goal': 'say hajime',
-                          'require': [
-                              ['say', {'words': 'hajime'}]
-                          ]}
-                     ]
-                     }
-                ]
-                }
+            json_string=json.dumps(data)
+            self.broadcast(json_string)
 
-        probe = Agent()
-        probe.spawn(list_unit_tag[0], 84,
-                    initial_knowledge=[
-                        ('type1', 'my_name', ['probe']),
-                        ('type2', 'i', 'say', ['my_name']),
-                    ],
-                    initial_goals=[create_goal_set(goal)]
-                    )
-        print('Agent is running...')
-        try:
-            probe.run()
-        except KeyboardInterrupt:
-            pass
-        probe.destroy()
-        print('The agent is terminated.')
+            if minerals>=500: # End option <- Should be delete
 
+                # Should be delete! Cause when the goal is achieved, the agent destroy itself.
+                for probe in self.threads_agents:
+                    probe.destroy()
 
+                self._leave_game()
+                self._quit_sc2()
+                break
 
+            # Get Requests from agents.
 
+            for i in range(len(self.threads_agents)):
+                req=self.perceive_request()
+                if req.startswith('core'):
+                    req=req[5:]
+                    req=json_format.Parse(req,sc_pb.RequestAction())
+                    #json.loads(req)
+                    self.comm_sc2.send(action=req)
 
+            self._train_probe(list(self.dict_nexus.keys())[0])
+
+            time.sleep(1)
+
+        print("Test Complete")
+        self.comm_agents.context.term()
 
 
 if __name__ == '__main__':

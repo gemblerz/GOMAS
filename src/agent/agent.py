@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-#-*- coding: utf-8 -*- 
 
 """
     Class Agent
@@ -13,7 +12,7 @@
 import sys
 import time
 import logging
-from datetime import datetime
+import threading
 
 sys.path.append('../')
 from units import units
@@ -40,8 +39,11 @@ class MentalState(object):
     def change_state(self):
         self.state = 'working'
 
-class Agent(object):
+class Agent(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
+
+
         self.discrete_time_step = 1 # sec
         self.alive = False
         self.state = MentalState()
@@ -60,6 +62,8 @@ class Agent(object):
         self.goals = goals
 
     def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
+        logging.info(str(spawn_id) + ' is being spawned...')
+
         assert unit_id in units
 
         # Identifier for the unit
@@ -81,6 +85,8 @@ class Agent(object):
 
         # Give it a life
         self.alive = True
+
+        logging.info(str(spawn_id) + ' has spawned.')
 
     def load_unit(self, spec):
         self.id = spec['id']
@@ -110,8 +116,9 @@ class Agent(object):
     '''
         Communication to other agents
     '''
-    def init_comm_agents(self, core=False):
-        self.comm_agents = Communicator(core)
+    def init_comm_agents(self):
+        #self.comm_agents = Communicator(self.spawn_id)
+        self.comm_agents = Communicator()
 
     def deinit_comm_agents(self):
         # It may need to send 'good bye' to others
@@ -119,6 +126,7 @@ class Agent(object):
 
     '''
         Destroy myself
+        Assumption : When the agent check that the goal is achieved, destory itself.
     '''
     def destroy(self):
         # Need to broadcast "I am destroying"
@@ -129,6 +137,7 @@ class Agent(object):
         self.deinit_comm_agents()
         self.alive = False
 
+        self.join()
 
     '''
         Sense information from its surroundings and other agents
@@ -179,7 +188,8 @@ class Agent(object):
     '''
         Information / actions going to simulator
     '''
-    def act(self, action, task):
+    def act(self, action #,task):
+        """
         self.state.change_state()
         task.state = 'Active'
         msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
@@ -194,6 +204,17 @@ class Agent(object):
             self.tell(words)
         else:
             action.perform()
+        return True
+        """
+        logger.info('%s %s is performing %s' % (self.name,self.spawn_id, action))
+        if action.__name__ == 'say':
+            words = action.require['words']
+            self.tell(str(self.spawn_id)+words, 'dummy')
+        else:
+            req=action.perform(self.spawn_id)
+            self.comm_agents.send(req, who='core')
+
+            return req
         return True
 
     '''
