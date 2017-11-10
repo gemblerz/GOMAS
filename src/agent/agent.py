@@ -262,8 +262,6 @@ class Agent(threading.Thread):
                     selected_task.state = 'Done'
                     print('>>',self.spawn_id, selected_task.__name__, 'is Done')
 
-            else:
-                break
             # May need to tell others the action that is about to be performed
             # self.tell('%d performs %s' % (self.id, action))
             # Or
