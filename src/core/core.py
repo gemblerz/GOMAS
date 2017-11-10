@@ -9,6 +9,7 @@ import threading
 import os
 import time
 import sys
+import json
 sys.path.append('../agent')
 from agent import Agent
 from goal import Goal, create_goal_set
@@ -171,6 +172,7 @@ class Core(object):
                     # new probe
                     self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
 
+                    # new thread starts -> spawn a new probe.
                     self.threads_agents.append(Agent())
                     self.threads_agents[-1].spawn(unit.tag, 84,
                                         initial_knowledge=[
@@ -262,33 +264,29 @@ class Core(object):
 
         self._start_new_game()
         self._start_proxy()
-
-        '''
-        list_mineral_tag = []
-        list_agent_tag = []
-        nexus_tag = []
-
-        observation = sc_pb.RequestObservation()
-        t = self.comm_sc2.send(observation=observation)
-
-        for unit in t.observation.observation.raw_data.units:
-            if unit.unit_type == 84:  # Probe unit_type_tag
-                list_agent_tag.append(unit.tag)
-            if unit.unit_type == 341:  # Mineral unit_type_tag
-                list_mineral_tag.append(unit.tag)
-            if unit.unit_type == 59:
-                nexus_tag.append(unit.tag)
-
-        print(list_agent_tag)
-        '''
-
         self.set_goal()
+
         while True:
 
             logger.info('%s is ticking' % ('core'))
 
             minerals,food_cap,food_used=self._req_playerdata()
-            if minerals>=500:
+
+            # Tell game data to everyone.
+            data = {}
+            data['has_minerals']=minerals
+            data['food_cap']=food_cap
+            data['food_used']=food_used
+            data['probe']=self.dict_probe
+            data['minerals']=self.dict_mineral
+            data['nexus']=self.dict_nexus
+
+            json_string=json.dumps(data)
+            self.broadcast(data)
+
+            if minerals>=500: # End option <- Should be delete
+
+                # Should be delete! Cause when the goal is achieved, the agent destroy itself.
                 for probe in self.threads_agents:
                     probe.destroy()
 
@@ -297,15 +295,17 @@ class Core(object):
                 break
 
             # Get Requests from agents.
-            req=self.perceive_request()
-            if req.startswith('core'):
-                req=req[5:]
-                req=json_format.Parse(req,sc_pb.RequestAction())
-                #json.loads(req)
-                self.comm_sc2.send(action=req)
+
+            for i in range(len(self.threads_agents)):
+                req=self.perceive_request()
+                if req.startswith('core'):
+                    req=req[5:]
+                    req=json_format.Parse(req,sc_pb.RequestAction())
+                    #json.loads(req)
+                    self.comm_sc2.send(action=req)
 
             self._train_probe(list(self.dict_nexus.keys())[0])
-            #    print("Success to spawn new probe")
+
             time.sleep(1)
 
         print("Test Complete")
