@@ -13,6 +13,7 @@ import sys
 import time
 import logging
 import threading
+import json
 
 sys.path.append('../')
 from units import units
@@ -149,8 +150,23 @@ class Agent(threading.Thread):
         message = self.comm_agents.read()
         if message.startswith('broadcasting'):
             message=message[13:]
-        self.msg_to_knowledge(message)
+            if message.startswith('{'):
+                self.json_to_knowledge(message)
+            else:
+                self.msg_to_knowledge(message)
         self.messages.append(message)
+
+
+    def json_to_knowledge(self, message):
+        json_msg = json.loads(message)
+        has_minerals = json_msg["has_minerals"]
+        food_cap = json_msg["food_cap"]
+        food_used = json_msg["food_used"]
+        probe = json_msg["probe"]  #probe dictionary
+        minerals = json_msg["minerals"] #mineral dictionary
+        nexus = json_msg["nexus"] #nexus dictionary
+        self.knowledge.append(Knowledge('type1', 'has_minerals', has_minerals))
+
 
 
     """
@@ -215,6 +231,7 @@ class Agent(threading.Thread):
     def tell(self, statement):
         logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
         msg = str(self.spawn_id) + " is " + self.state.state
+        print(">> {} is telling : {}".format(self.spawn_id, msg))
         self.comm_agents.send(msg, broadcast=True)
 
 
@@ -309,7 +326,7 @@ class Agent(threading.Thread):
             #check every goal whether now achieved.
             for goal in self.goals:
                 print('>> {} Start checking goal tree... root goal is "{}"'.format(self.spawn_id, goal.name))
-                goal.can_be_achieved()
+                goal.can_be_achieved(self.knowledge) #check the goal state by looking up the knowledges
                 if goal.goal_state == 'assigned' or goal.goal_state == 'achieved':
                     msg = "{} {}".format(goal.name, goal.goal_state)
                     self.msg_to_knowledge(msg)
@@ -322,9 +339,12 @@ class Agent(threading.Thread):
             for k in self.knowledge:
                 print(k)
 
+            """
             print("## "+ str(self.spawn_id) + "'s messages:")
             for m in self.messages:
                 print(m)
+            """
+
 
             if self.state.state == 'working':
                 continue
@@ -348,8 +368,12 @@ class Agent(threading.Thread):
                     print('>>', selected_task.__name__, 'is Done')
 
             else:
-                print(">> %d's selected action is None: Destroy" % (self.spawn_id))
-                break
+                if self.goals[0].goal_state == 'achieved':
+                    print(">> Top goal is achieved '{}' destroying".format(self.spawn_id))
+                    self.destroy()
+                    break
+                #print(">> %d's selected action is None: Destroy" % (self.spawn_id))
+                pass
             # May need to tell others the action that is about to be performed
             # self.tell('%d performs %s' % (self.id, action))
             # Or

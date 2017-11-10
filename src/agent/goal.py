@@ -101,11 +101,17 @@ class Goal(object):
                     return subgoal._get_leaf_goal_and_tasks()
             return self, self.tasks
 
-    def can_be_achieved(self):
+    # receive the agent's knowledge to check end condition
+    def can_be_achieved(self, knowledge):
+
+        for k in knowledge:
+            if k is not None and k.type == 'type1' and k.n == 'has_minerals' and k.na == '20':
+                self.goal_state = 'achieved'
+                print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
 
         #check subgoals
         for subgoal in self.subgoals:
-            if not subgoal.can_be_achieved():
+            if not subgoal.can_be_achieved(knowledge):
                 print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
 
@@ -114,8 +120,9 @@ class Goal(object):
             if task.state != 'Done':
                 print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
-        print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
-        self.goal_state = 'achieved'
+
+
+
         return True
 
 

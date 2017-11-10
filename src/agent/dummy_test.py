@@ -26,7 +26,7 @@ class AgentThread(threading.Thread):
         self.who = Agent()
         self.who.spawn(counter, unit_id, initial_knowledge, initial_goals)
         #self.set_arguments(counter, unit_id, initial_knowledge, initial_goals)
-        self.who.init_comm_agents(core)
+        self.who.init_comm_agents()
         logging.info(self.name+' is Initialzied')
 
     def run(self):
