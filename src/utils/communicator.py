@@ -6,7 +6,6 @@
         - Using ZeroMQ to connect, especially using PUB/SUB method.
         - Our Communicator model uses one Brocker intermediate.
         - Assume that all agents always 'broadcasting' their msg to everyone.
-
     Func proxy
     This describes our intermediate broker.
         - Using ZeroMQ to receive and send msg, sockets are consist of XPUB/XSUB.
@@ -15,6 +14,12 @@
 
 import zmq
 import time
+import logging
+
+FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
+
 
 # Broker's addresses
 proxy_addr_in = 'tcp://127.0.0.1:5555'
@@ -30,7 +35,7 @@ class Communicator(object):
         if self.core is True:
             self.subscriber.setsockopt(zmq.SUBSCRIBE, b'core')
         else:
-            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'')
+            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'broadcasting')
 
         self.subscriber.connect(proxy_addr_out)
 
@@ -51,18 +56,18 @@ class Communicator(object):
             pass
         return message
 
-    def send(self, message):
+    def send(self, message, broadcast=False, who=''):
 
-        if self.core is True:
-            self.publisher.send_string("%s %s"%('agent',message))
+        if broadcast is True:
+            self.publisher.send_string("%s %s"%('broadcasting',message))
+        elif who != '':
+            self.publisher.send_string("%s %s"%(who,message))
         else:
-            self.publisher.send_string("%s"%(message))
-
+            logging.error("Doesn't set the target to send msg!")
 
     def close(self):
         self.publisher.close()
         self.subscriber.close()
-        self.context.term()
 
 # Proxy server acts Broker to transfer msg from all agents to all agents.
 def proxy():
@@ -76,6 +81,7 @@ def proxy():
     socket_out.bind(addr_out)
 
     try:
+        logger.info("proxy is started.")
         zmq.proxy(socket_in, socket_out)
     except zmq.ContextTerminated:
         print("proxy terminated")
