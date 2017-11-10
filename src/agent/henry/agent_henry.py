@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+#-*- coding: utf-8 -*- 
 
 """
     Class Agent
@@ -12,13 +13,11 @@
 import sys
 import time
 import logging
-import threading
-
 sys.path.append('../')
 from units import units
 from utils.communicator import Communicator
 
-from action import Action, get_basic_actions
+from action_henry import Action, get_basic_actions
 from knowledge_base import Knowledge
 from goal import Goal, create_goal_set
 
@@ -39,11 +38,8 @@ class MentalState(object):
     def change_state(self):
         self.state = 'working'
 
-class Agent(threading.Thread):
+class Agent(object):
     def __init__(self):
-        threading.Thread.__init__(self)
-
-
         self.discrete_time_step = 1 # sec
         self.alive = False
         self.state = MentalState()
@@ -51,24 +47,19 @@ class Agent(threading.Thread):
         self.actions = get_basic_actions()
         self.knowledge = []
         self.goals = []
-        self.messages = []
 
     def _load_knowledge(self, knowledge):
         for k in knowledge:
-            self.tuple_to_knowledge(k)
-            #self.knowledge.append(k)
+            self.knowledge.append(Knowledge(k))
 
     def _load_goals(self, goals):
         self.goals = goals
 
     def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
-        logging.info(str(spawn_id) + ' is being spawned...')
-
         assert unit_id in units
 
         # Identifier for the unit
         self.spawn_id = spawn_id
-        print("{} is spawned".format(spawn_id))
 
         # Load basic characteristics of the unit
         self.load_unit(units[unit_id])
@@ -85,8 +76,6 @@ class Agent(threading.Thread):
 
         # Give it a life
         self.alive = True
-
-        logging.info(str(spawn_id) + ' has spawned.')
 
     def load_unit(self, spec):
         self.id = spec['id']
@@ -117,8 +106,7 @@ class Agent(threading.Thread):
         Communication to other agents
     '''
     def init_comm_agents(self):
-        #self.comm_agents = Communicator(self.spawn_id)
-        self.comm_agents = Communicator()
+        self.comm_agents = Communicator(self.id)
 
     def deinit_comm_agents(self):
         # It may need to send 'good bye' to others
@@ -126,18 +114,12 @@ class Agent(threading.Thread):
 
     '''
         Destroy myself
-        Assumption : When the agent check that the goal is achieved, destory itself.
     '''
     def destroy(self):
-        # Need to broadcast "I am destroying"
-        msg = "{} destroy".format(self.spawn_id)
-        self.comm_agents.send(msg)
         # Close communications
         self.deinit_comm_env()
         self.deinit_comm_agents()
         self.alive = False
-
-        self.join()
 
     '''
         Sense information from its surroundings and other agents
@@ -147,84 +129,52 @@ class Agent(threading.Thread):
 
         # Perceive from other agents
         message = self.comm_agents.read()
-        if message.startswith('broadcasting'):
-            message=message[13:]
-        self.msg_to_knowledge(message)
-        self.messages.append(message)
-
-
-    """
-        Change msg(str) to Knowledge
-    """
-    def msg_to_knowledge(self, message):
-        splited_msg = message.split()
-        tuple_msg = tuple(splited_msg)
-        if splited_msg is not None:
-            if len(splited_msg) == 2:
-                self.knowledge.append(Knowledge('type1', tuple_msg[0], [tuple_msg[1]]))
-            elif len(splited_msg) == 3:
-                self.knowledge.append(Knowledge('type2', tuple_msg[0], tuple_msg[1], [tuple_msg[2]]))
-            else:
-                pass
-        else:
+        if message:
+            # Put the message into knowledge base
+            #self.knowledge
             pass
-
-    """
-        Change tuple to Knowledge
-    """
-    def tuple_to_knowledge(self, tuple_msg):
-        if tuple_msg is not None:
-            if len(tuple_msg) == 3:
-                self.knowledge.append(Knowledge(tuple_msg[0], tuple_msg[1], tuple_msg[2]))
-            elif len(tuple_msg) == 4:
-                self.knowledge.append(Knowledge(tuple_msg[0], tuple_msg[1], tuple_msg[2], tuple_msg[3]))
-            else:
-                pass
-        else:
-            pass
-
-
 
     '''
         Information / actions going to simulator
     '''
-    def act(self, action #,task):
-        """
+    def act(self, action, task):
         self.state.change_state()
         task.state = 'Active'
-        msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
-        self.msg_to_knowledge(msg)
-
-        logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
-        if action.__name__ == 'move':
-            words = action.require['target'] + " " + str(action.require['pos_x']) + " " + str(action.require['pos_y'])
-            self.tell(words)
-        elif action.__name__ == 'gather':
-            words = action.require['target'] + " " + action.require['unit_tag']
-            self.tell(words)
+        logger.info('%s %s is performing %s' % (self.name,self.spawn_id, action) )
+        action.set_arguments(task.arguments)
+        if action.__name__=='say':
+            words = action.require['words']
+            self.tell(words, 'dummy')
+        elif action.__name__=='block':
+            words = action.require['words']
+            logger.info('I am finding Henry...')
+            action.perform()
+        elif action.__name__=='do':
+            words = action.require['words']
+            logger.info('Sorry.....')
+            action.perform()
+        elif action.__name__=='coding':
+            words = action.require['words']
+            logger.info('Coding at KSQ')
+            action.perform()
+        elif action.__name__=='find':
+            words = action.require['words']
+            logger.info('Where is Henry..?')
+            action.perform()
+        elif action.__name__=='watch':
+            words = action.require['words']
+            logger.info('Wait for 2 minutes~')
+            action.perform()
         else:
             action.perform()
-        return True
-        """
-        logger.info('%s %s is performing %s' % (self.name,self.spawn_id, action))
-        if action.__name__ == 'say':
-            words = action.require['words']
-            self.tell(str(self.spawn_id)+words, 'dummy')
-        else:
-            req=action.perform(self.spawn_id)
-            self.comm_agents.send(req, who='core')
-
-            return req
         return True
 
     '''
         Delivering information to other agents
     '''
-    def tell(self, statement):
-        logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
-        msg = str(self.spawn_id) + " is " + self.state.state
-        self.comm_agents.send(msg, broadcast=True)
-
+    def tell(self, statement, who):
+        logger.info('I am telling %s to %s' % (statement, who))
+        self.comm_agents.send(who, statement)
 
     '''
         Query to other agents
@@ -238,7 +188,6 @@ class Agent(threading.Thread):
     def _has_action_for_task(self, task):
         for action in self.actions:
             if action.can_perform(task.__name__):
-                action.set_arguments(task.arguments)
                 return action
         return None
 
@@ -280,6 +229,9 @@ class Agent(threading.Thread):
             return None, None
 
         return_action = list_actions[0]
+
+        #TODO : which agent should take the 
+
         # Return the most beneficial action from the selected actions
         return return_action
 
@@ -289,7 +241,7 @@ class Agent(threading.Thread):
     def run(self):
         while self.alive:
             # For debugging
-            logger.info('%s %d is ticking' % (self.name, self.spawn_id))
+            logger.info('%s is ticking' % (self.name,))
             print()
             # Check if something to answer
             # query = self.check_being_asked():
@@ -299,41 +251,15 @@ class Agent(threading.Thread):
             # Perceive environment
             self.perceive()
 
-            #check knowledge and update the goal tree
-            tasks = []
-            for g in self.goals:
-                tasks = g.get_available_tasks()
-
-            for k in self.knowledge:
-                if k.type == 'type1':
-                    for goal in self.goals:
-                        if k.n == goal.name:
-                            goal.goal_state = k.na
-                    for task in tasks:
-                        if k.n == task.__name__:
-                            task.state = k.na
-
+            for goal in self.goals:
+                if goal.name == 'introduce myself':
+                    print('>>', goal.name, 'is', goal.goal_state)
 
             #check every goal whether now achieved.
             for goal in self.goals:
-                print('>> {} Start checking goal tree... root goal is "{}"'.format(self.spawn_id, goal.name))
+                print('>> Start checking goal tree... root goal is', goal.name)
                 goal.can_be_achieved()
-                if goal.goal_state == 'assigned' or goal.goal_state == 'achieved':
-                    msg = "{} {}".format(goal.name, goal.goal_state)
-                    self.msg_to_knowledge(msg)
-
-
-
-
-
-            print("## "+ str(self.spawn_id) + "'s knowledge:")
-            for k in self.knowledge:
-                print(k)
-
-            print("## "+ str(self.spawn_id) + "'s messages:")
-            for m in self.messages:
-                print(m)
-
+            
             if self.state.state == 'working':
                 continue
 
@@ -356,7 +282,6 @@ class Agent(threading.Thread):
                     print('>>', selected_task.__name__, 'is Done')
 
             else:
-                print(">> %d's selected action is None: Destroy" % (self.spawn_id))
                 break
             # May need to tell others the action that is about to be performed
             # self.tell('%d performs %s' % (self.id, action))
@@ -376,7 +301,6 @@ class Agent(threading.Thread):
 '''
 if __name__ == '__main__':
 
-    """
     goal = {'goal': 'introduce myself',
             'require': [
                 ['say', {'words': 'hello'}],
@@ -390,19 +314,6 @@ if __name__ == '__main__':
                       ]}
                  ]
                  }
-            ]
-            }
-    """
-
-    goal = {'goal': 'gather 100 minerals',
-            'trigger': [],
-            'satisfy': [
-                ('type2', 'i', 'have', ['100 minerals'])
-            ],
-            'precedent': [],
-            'require': [
-                ['move', {'target': 'point', 'pos_x': 10, 'pos_y': 10}],
-                ['gather', {'target': 'unit', 'unit_tag': 'list_mineral_tag[0]'}],
             ]
             }
 

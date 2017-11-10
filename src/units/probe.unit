@@ -28,7 +28,7 @@
           pos_x: 0
           pos_y: 0
 
-    #gather is consist of MULEgater and MULEreturn    
+    #gather is consist of MULEgater and MULEreturn
     - id: 166
       name: gather #gather MULE
       require:

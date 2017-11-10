@@ -6,7 +6,6 @@
         - Using ZeroMQ to connect, especially using PUB/SUB method.
         - Our Communicator model uses one Brocker intermediate.
         - Assume that all agents always 'broadcasting' their msg to everyone.
-
     Func proxy
     This describes our intermediate broker.
         - Using ZeroMQ to receive and send msg, sockets are consist of XPUB/XSUB.
