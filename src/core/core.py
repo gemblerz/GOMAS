@@ -36,7 +36,7 @@ class Core(object):
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher\
                                   --listen 127.0.0.1\
                                   --port %s"%self.port
-            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap.SC2Map'
+            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap_solo.SC2Map'
 
         elif sys.platform == "win32": # Windows
             pass
