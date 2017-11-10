@@ -53,6 +53,7 @@ class Core(object):
         self.thread_proxy = threading.Thread(target=proxy)
         self.threads_agents = []
 
+        # Set the dictionary to save the information from SC2 client.
         self.dict_probe = {}
         self.dict_mineral = {}
         self.dict_nexus = {}
@@ -83,11 +84,19 @@ class Core(object):
             - _start_new_game
                     After starting SC2 client, to start the game, we have to select the map and request to open the game.
                     Set the game configuration, and request to join that game.
-            - _leave_game :
-            - _quit_sc2 : 
-            - _train_probe :
-            - _build_pylon :
-            - _req_playerdata :
+            - _leave_game
+                    When the goal-oriented simulation is finished, Leave the game to end program.
+            - _quit_sc2
+                    Quit the SC2 client program.
+            - _train_probe
+                    Train a probe in nexus.
+                    It doesn't wait for spawning a probe, so cannot start a new agent thread.
+            - _build_pylon
+                    Build the pylon on storage_area which is start from (x,y) = (27,33), add 2 to x after that.
+            - _req_playerdata
+                    Request the basic information data to SC2 client.
+                    Update some data 'dict_probe', 'dict_pylon', 'dict_nexus'.
+                    Return the tuple that includes 'the amount of minerals', 'food capacity', 'food used'
     '''
     def _start_new_game(self):
 
@@ -202,8 +211,6 @@ class Core(object):
                     # new nexus
                     self.dict_nexus[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
 
-
-
         minerals = t.observation.observation.player_common.minerals
         food_cap = t.observation.observation.player_common.food_cap
         food_used = t.observation.observation.player_common.food_used
@@ -216,10 +223,12 @@ class Core(object):
         Connection methods to broadast and receive msg.
         
             Includes,
-            - _start_proxy : Start the proxy that is broker among the agents, also between core and agents.
-
+            - _start_proxy
+                    Start the proxy that is broker among the agents, also between core and agents.
             - broadcast
+                    Usually use 'broadcast' to 'agents' from 'core' to send the status of player in SC2.
             - perceive_request
+                    To get requests from agents, such as to move probe, to gather minerals.
     '''
     def _start_proxy(self):
         logger.info("Try to turn on proxy...")
