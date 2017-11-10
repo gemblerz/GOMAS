@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     proxy_thread = threading.Thread(target=proxy)
 
-    goal = {'goal': 'gather 100 minerals',
+    goal = {'goal': 'gather_100_minerals',
             'trigger': [],
             'satisfy': [
                 ('type2', 'i', 'have', ['100 minerals'])
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     dummy_knowledge = [
         ('type1', 'my_name', ['dummy']),
-        ('type1', 'my_state', ['working']),
+        ('type1', 'my_state', ['Idle']),
     ]
 
 

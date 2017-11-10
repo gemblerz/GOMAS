@@ -121,10 +121,14 @@ class Agent(object):
         Destroy myself
     '''
     def destroy(self):
+        # Need to broadcast "I am destroying"
+        msg = "{} destroy".format(self.spawn_id)
+        self.comm_agents.send(msg)
         # Close communications
         self.deinit_comm_env()
         self.deinit_comm_agents()
         self.alive = False
+
 
     '''
         Sense information from its surroundings and other agents
@@ -134,19 +138,14 @@ class Agent(object):
 
         # Perceive from other agents
         message = self.comm_agents.read()
-        #msg = 'Dummy is working'
-        #self.msg_to_knowledge(msg)
+        if message.startswith('broadcasting'):
+            message=message[13:]
         self.msg_to_knowledge(message)
         self.messages.append(message)
 
-        """
-        if message:
-            # Put the message into knowledge base
-            self.knowledge.append(message)
-        """
 
     """
-        Change msg to Knowledge
+        Change msg(str) to Knowledge
     """
     def msg_to_knowledge(self, message):
         splited_msg = message.split()
@@ -183,6 +182,9 @@ class Agent(object):
     def act(self, action, task):
         self.state.change_state()
         task.state = 'Active'
+        msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
+        self.msg_to_knowledge(msg)
+
         logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
         if action.__name__ == 'move':
             words = action.require['target'] + " " + str(action.require['pos_x']) + " " + str(action.require['pos_y'])
@@ -200,7 +202,7 @@ class Agent(object):
     def tell(self, statement):
         logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
         msg = str(self.spawn_id) + " is " + self.state.state
-        self.comm_agents.send(msg)
+        self.comm_agents.send(msg, broadcast=True)
 
 
     '''
@@ -276,14 +278,32 @@ class Agent(object):
             # Perceive environment
             self.perceive()
 
-            for goal in self.goals:
-                if goal.name == 'introduce myself':
-                    print('>>', goal.name, 'is', goal.goal_state)
+            #check knowledge and update the goal tree
+            tasks = []
+            for g in self.goals:
+                tasks = g.get_available_tasks()
+
+            for k in self.knowledge:
+                if k.type == 'type1':
+                    for goal in self.goals:
+                        if k.n == goal.name:
+                            goal.goal_state = k.na
+                    for task in tasks:
+                        if k.n == task.__name__:
+                            task.state = k.na
+
 
             #check every goal whether now achieved.
             for goal in self.goals:
                 print('>> {} Start checking goal tree... root goal is "{}"'.format(self.spawn_id, goal.name))
                 goal.can_be_achieved()
+                if goal.goal_state == 'assigned' or goal.goal_state == 'achieved':
+                    msg = "{} {}".format(goal.name, goal.goal_state)
+                    self.msg_to_knowledge(msg)
+
+
+
+
 
             print("## "+ str(self.spawn_id) + "'s knowledge:")
             for k in self.knowledge:

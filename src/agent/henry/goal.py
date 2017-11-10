@@ -146,6 +146,10 @@ class Goal(object):
         leaf_goal, tasks = self._get_leaf_goal_and_tasks()
         return leaf_goal, tasks
 
+    def get_available_tasks(self):
+        leaf_goal, tasks = self._get_leaf_goal_and_tasks()
+        return tasks
+
     def get_goal(self):
         if len(self.subgoals) > 0:
             return self.subgoals[0]
