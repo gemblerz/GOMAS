@@ -67,8 +67,22 @@ class Core(object):
         self.comm_sc2.open()
 
     def deinit(self):
-        pass
+        self.comm_agents.close()
+        self.comm_sc2.close()
 
+    '''
+        Collection of Requests to SC2 client.
+        
+            Includes,
+            - _start_new_game
+                    After starting SC2 client, to start the game, we have to select the map and request to open the game.
+                    Set the game configuration, and request to join that game.
+            - _leave_game :
+            - _quit_sc2 : 
+            - _train_probe :
+            - _build_pylon :
+            - _req_amount_minerals :
+    '''
     def _start_new_game(self):
 
         # create a game
@@ -104,18 +118,21 @@ class Core(object):
 
         # Game Start
         try:
-            print(self.comm_sc2.send(step=sc_pb.RequestStep(count=1)))
+            #print(self.comm_sc2.send(step=sc_pb.RequestStep(count=1)))
 
             logger.info('Game is Started.')
         except Exception as ex:
             logger.error('While starting a new game: %s'%str(ex))
 
-    def _start_proxy(self):
-        logger.info("Try to turn on proxy...")
-        self.thread_proxy.start()
-        time.sleep(1) # wait for turn on proxy
+    def _leave_game(self):
+        print(self.comm_sc2.send(leave_game=sc_pb.RequestLeaveGame()))
+        logger.info('Leave the Game.')
 
-    def train_probe(self, nexus_tag):
+    def _quit_sc2(self):
+        print(self.comm_sc2.send(quit=sc_pb.RequestQuit()))
+        logger.info("Quit the SC2 client")
+
+    def _train_probe(self, nexus_tag):
         unit_command = raw_pb.ActionRawUnitCommand(ability_id=1006)
         unit_command.unit_tags.append(nexus_tag)
         action_raw = raw_pb.ActionRaw(unit_command=unit_command)
@@ -127,12 +144,45 @@ class Core(object):
 
         return  t.observation.observation.raw_data.units[-1].tag
 
-    def request_amount_of_mules(self):
+    def _build_pylon(self, probe_tag):
+        # build_pylon
+        unit_command = raw_pb.ActionRawUnitCommand(ability_id=881)
+        unit_command.unit_tags.append(probe_tag)
+        unit_command.target_world_space_pos.x = 38
+        unit_command.target_world_space_pos.y = 29
+        action_raw = raw_pb.ActionRaw(unit_command=unit_command)
+        action = sc_pb.RequestAction()
+        action.actions.add(action_raw=action_raw)
+        self.comm_sc2.send(action=action)
+
+    def _req_playerdata(self):
         observation = sc_pb.RequestObservation()
         t = self.comm_sc2.send(observation=observation)
 
-        #print(t.observation.observation.player_common.minerals)
-        return t.observation.observation.player_common.minerals
+        minerals = t.observation.observation.player_common.minerals
+        food_cap = t.observation.observation.player_common.food_cap
+        food_used = t.observation.observation.player_common.food_used
+        print('Minerals: ',minerals)
+        print('Population: %d/%d'%(food_used,food_cap))
+        return (minerals,food_cap,food_used)
+
+    '''
+        Connection methods to broadast and receive msg.
+        
+            Includes,
+            - _start_proxy : Start the proxy that is broker among the agents, also between core and agents.
+
+            - broadcast
+            - perceive_request
+    '''
+    def _start_proxy(self):
+        logger.info("Try to turn on proxy...")
+        self.thread_proxy.start()
+        time.sleep(1) # wait for turn on proxy
+
+
+    def broadcast(self,msg):
+        self.comm_agents.send(msg,broadcast=True)
 
     def perceive_request(self):
         return self.comm_agents.read()
@@ -176,57 +226,41 @@ class Core(object):
 
                 }
 
-        probe = Agent()
+        self.threads_agents.append(Agent())
 
-        probe.spawn(list_agent_tag[0], 84,
-                    initial_knowledge=[
-                        ('type1', 'my_name', ['probe']),
-                        ('type2', 'i', 'have', ['0 minerals']),
-                    ],
-                    initial_goals=[create_goal_set(goal)]
-                    )
-        self.threads_agents.append(probe)
+        for probe in self.threads_agents:
+            probe.spawn(list_agent_tag[0], 84,
+                        initial_knowledge=[
+                            ('type1', 'my_name', ['probe']),
+                            ('type2', 'i', 'have', ['0 minerals']),
+                        ],
+                        initial_goals=[create_goal_set(goal)]
+                        )
 
         print('Agent is running...')
         try:
-            self.threads_agents[0].start()
-            """
-                
-                #build_pylon
-                unit_command = raw_pb.ActionRawUnitCommand(ability_id=881)
-                unit_command.unit_tags.append(list_unit_tag[0])
-                unit_command.target_world_space_pos.x = 38
-                unit_command.target_world_space_pos.y = 29
-                action_raw = raw_pb.ActionRaw(unit_command=unit_command)
-                action = sc_pb.RequestAction()
-                action.actions.add(action_raw=action_raw)
-                self.comm.send(action=action)
-                time.sleep(2)
-                
-                
-                #train_probe test
-                unit_command = raw_pb.ActionRawUnitCommand(ability_id=1006)
-                unit_command.unit_tags.append(nexus[0])
-                action_raw = raw_pb.ActionRaw(unit_command=unit_command)
-                action = sc_pb.RequestAction()
-                action.actions.add(action_raw=action_raw)
-                self.comm.send(action=action)
-                time.sleep(2)
-            """
-
+            for probe in self.threads_agents:
+                probe.start()
 
         except KeyboardInterrupt:
             pass
 
         while True:
-            minerals=self.request_amount_of_mules()
-            if minerals>=100:
+
+            logger.info('%s is ticking' % ('core'))
+
+            minerals,food_cap,food_used=self._req_playerdata()
+            if minerals>=500:
                 for probe in self.threads_agents:
                     probe.destroy()
+
+                self._leave_game()
+                self._quit_sc2()
                 break
 
+            # Get Requests from agents.
             req=self.perceive_request()
-            if req != '':
+            if req.startswith('core'):
                 req=req[5:]
                 req=json_format.Parse(req,sc_pb.RequestAction())
                 #json.loads(req)
@@ -242,9 +276,6 @@ class Core(object):
         #probe.destroy()
         print("Test Complete")
         self.comm_agents.context.term()
-
-
-        print('The agent is terminated.')
 
 
 if __name__ == '__main__':
