@@ -188,8 +188,7 @@ class Agent(threading.Thread):
     '''
         Information / actions going to simulator
     '''
-    def act(self, action #,task):
-        """
+    def act(self, action, task):
         self.state.change_state()
         task.state = 'Active'
         msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
@@ -199,22 +198,15 @@ class Agent(threading.Thread):
         if action.__name__ == 'move':
             words = action.require['target'] + " " + str(action.require['pos_x']) + " " + str(action.require['pos_y'])
             self.tell(words)
-        elif action.__name__ == 'gather':
-            words = action.require['target'] + " " + action.require['unit_tag']
-            self.tell(words)
-        else:
-            action.perform()
-        return True
-        """
-        logger.info('%s %s is performing %s' % (self.name,self.spawn_id, action))
-        if action.__name__ == 'say':
-            words = action.require['words']
-            self.tell(str(self.spawn_id)+words, 'dummy')
-        else:
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
-
-            return req
+        elif action.__name__ == 'gather':
+            words = action.require['target'] + " " + str(action.require['unit_tag'])
+            self.tell(words)
+            req=action.perform(self.spawn_id)
+            self.comm_agents.send(req, who='core')
+        else:
+            action.perform()
         return True
 
     '''
