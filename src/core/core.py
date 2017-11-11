@@ -185,10 +185,10 @@ class Core(object):
                     # new thread starts -> spawn a new probe.
                     self.threads_agents.append(Agent())
                     self.threads_agents[-1].spawn(unit.tag, 84,
-                                        initial_knowledge=[
-                                        ('type1', 'my_name', ['probe']),
-                                        ('type2', 'i', 'have', ['0 minerals']),
-                                        ],
+                                        initial_knowledge={
+                                            'I' : {'am' : str(unit.tag) },
+                                            'minerals' : {'gathered' : '0'}
+                                        },
                                         initial_goals=[create_goal_set(self.goal)]
                                     )
 
@@ -284,12 +284,14 @@ class Core(object):
 
             # Tell game data to everyone.
             data = {}
-            data['has_minerals']=minerals
-            data['food_cap']=food_cap
-            data['food_used']=food_used
-            data['probe']=self.dict_probe
-            data['minerals']=self.dict_mineral
-            data['nexus']=self.dict_nexus
+            data['minerals']={}
+            data['minerals']['gathered'] = str(minerals)
+            data['minerals']['are']=self.dict_mineral.items()
+            data['food']={}
+            data['food']['has'] = str(food_cap)
+            data['food']['used'] = str(food_used)
+            data['probes']={'are',self.dict_probe.items()}
+            data['nexus']={'are',self.dict_nexus.items()}
 
             json_string=json.dumps(data)
             self.broadcast(json_string)

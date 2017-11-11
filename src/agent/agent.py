@@ -50,13 +50,14 @@ class Agent(threading.Thread):
         self.state = MentalState()
 
         self.actions = get_basic_actions()
-        self.knowledge = []
+        self.knowledge = {}
         self.goals = []
         self.messages = []
 
     def _load_knowledge(self, knowledge):
-        for k in knowledge:
-            self.tuple_to_knowledge(k)
+        for key,value in knowledge.items():
+            self.knowledge[key]=value
+            #self.tuple_to_knowledge(k)
             #self.knowledge.append(k)
 
     def _load_goals(self, goals):
