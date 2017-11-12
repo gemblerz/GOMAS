@@ -183,6 +183,7 @@ class Task(object):
     def __init__(self, task_name='', arguments={}, type=''):
         self.__name__ = task_name
         self.arguments = arguments
+        self.arguments['task_name'] = task_name
         self.state = 'Ready'
         self.type = type
 
