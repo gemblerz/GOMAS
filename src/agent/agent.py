@@ -207,11 +207,9 @@ class Agent(threading.Thread):
     '''
     def act(self, action, task):
         self.state.change_state()
-        task.state = 'Active'
 
-        #TODO for sanguk : State change --> msg
-        msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
-        self.msg_to_knowledge(msg)
+        # Update task state
+        self.knowledge[task.__name__].update({'is': 'Active'})
 
         logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
         if action.__name__ == 'move':
@@ -224,9 +222,21 @@ class Agent(threading.Thread):
             self.tell(words)
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
+        elif action.__name__ == 'check':
+            action.perform_query()
+            return False
         else:
-            action.perform()
+            print('act function --> else ERROR!!!!!!')
         return True
+
+    def query(self, task_name, target, amount):
+        #find knowledgebase
+
+        if target in self.knowledge:
+            current_amount = self.knowledge[target]['is']
+            if current_amount >= amount:
+                #knowledgebase update
+                self.knowledge[task_name].update({'is': 'Done'})
 
     '''
         Delivering information to other agents
@@ -381,33 +391,24 @@ class Agent(threading.Thread):
 
             # Perform the action
             if selected_action is not None:
-
                 if not self.act(selected_action, selected_task):
-                    selected_task.state = 'failed'
+                    #Query task come here!
+                    pass
                 else:
-                    #TODO : selected_goal should be leaf goal that act selected_action...?
+                    #General task come here!
                     selected_task.state = 'Done'
-                    print('>>', selected_task.__name__, 'is Done')
 
             else:
                 if self.goals[0].goal_state == 'achieved':
                     print(">> Top goal is achieved '{}' destroying".format(self.spawn_id))
                     self.destroy()
                     break
-                #print(">> %d's selected action is None: Destroy" % (self.spawn_id))
                 pass
-            # May need to tell others the action that is about to be performed
-            # self.tell('%d performs %s' % (self.id, action))
-            # Or
-            # May tell others the action has performed
 
-            # Sleep a while to prevent meaningless burst looping
-            self.state.__init__()
+            #TODO for Tony : Please Broadcast knowledge...
             time.sleep(self.discrete_time_step)
 
-        # Stopped thinking
-        # Means it is dead
-        # bye bye
+
 
 '''
     For testing

@@ -20,7 +20,7 @@ def get_basic_actions():
 self.tell(words)
     '''
     query = '''
-self.query(target, amount)
+self.query(task_name, target, amount)
     '''
 #    actions.append(Action(action_name='say', actual_code=code, require={'words': 'string'}))
     actions.append(Action(action_name='check', actual_code=query, require={'target': 'string', 'amount': 'int'}))
