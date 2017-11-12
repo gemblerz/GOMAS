@@ -19,7 +19,11 @@ def get_basic_actions():
     code = '''
 self.tell(words)
     '''
-    actions.append(Action(action_name='say', actual_code=code, require={'words': 'string'}))
+    query = '''
+self.query(target, amount)
+    '''
+#    actions.append(Action(action_name='say', actual_code=code, require={'words': 'string'}))
+    actions.append(Action(action_name='check', actual_code=query, require={'target': 'string', 'amount': 'int'}))
     return actions
 
 
@@ -37,7 +41,7 @@ class Action(object):
         self.require=args
 
     def can_perform(self, task_name):
-        if task_name == self.__name__:
+        if task_name.startswith(self.__name__):
             return True
         else:
             return False
@@ -67,5 +71,15 @@ class Action(object):
 
         return msg
         # Perform the action in real
+
+    def perform_query(self):
+        # Pass arguments
+        for param in self.require:
+            param_str = '%s=\'%s\'' % (param, self.require[param])
+            exec(param_str)
+
+        # Perform the action in real
+        exec(self.code)
+
 
 

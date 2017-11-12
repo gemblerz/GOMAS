@@ -208,6 +208,8 @@ class Agent(threading.Thread):
     def act(self, action, task):
         self.state.change_state()
         task.state = 'Active'
+
+        #TODO for sanguk : State change --> msg
         msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
         self.msg_to_knowledge(msg)
 
@@ -255,7 +257,7 @@ class Agent(threading.Thread):
     '''
         Returns available actions based on the desires in the current situation
     '''
-    def next_action(self, current_goal, current_knowledge):
+    def next_action(self, current_goal, current_knowledge, mentalstate):
         list_actions = []
         if len(current_goal) == 0:
             # TODO: is an action always triggered by a goal?
@@ -268,6 +270,23 @@ class Agent(threading.Thread):
             if len(tasks) != 0:
                 leaf_goal.goal_state = 'assigned'
             for task in tasks:
+
+                if mentalstate == 'idle':
+                    #ping
+
+
+
+
+
+                elif mentalstate == 'working':
+                    if task.type == 'Query' and (task.state == 'Ready' or task.state == 'Active'):
+                        #Check whether query task is done
+                        action = self._has_action_for_task(task)
+                        if action is not None:
+                            list_actions.append((action, task))
+
+
+
                 if task.state == 'Ready':
                     action = self._has_action_for_task(task)
                     if action is not None:
@@ -293,6 +312,25 @@ class Agent(threading.Thread):
         # Return the most beneficial action from the selected actions
         return return_action
 
+    def update_goal_tree(self, knowledge, goal):
+
+        if goal.name in knowledge:
+            goal.goal_state = knowledge[goal.name]['is']
+
+        # check subgoals
+        for subgoal in goal.subgoals:
+            self.update_goal_tree(knowledge, subgoal)
+
+
+        # check task
+        for task in self.tasks:
+            if task.__name__ in knowledge:
+                task.state = knowledge[task.__name__]['is']
+
+        return True
+
+
+
     '''
         Main logic runs here (i.e., reasoning)
     '''
@@ -301,6 +339,11 @@ class Agent(threading.Thread):
             # For debugging
             logger.info('%s %d is ticking' % (self.name, self.spawn_id))
             print()
+
+            for k in self.knowledge:
+                print(k)
+
+
             # Check if something to answer
             # query = self.check_being_asked():
             # if query:
@@ -310,6 +353,7 @@ class Agent(threading.Thread):
             self.perceive()
 
             #check knowledge and update the goal tree
+            """
             tasks = []
             for g in self.goals:
                 tasks = g.get_available_tasks()
@@ -322,48 +366,25 @@ class Agent(threading.Thread):
                     for task in tasks:
                         if k.n == task.__name__:
                             task.state = k.na
+            """
 
+            # check knowledge and update the goal tree
+            for goal in self.goals:
+                self.update_goal_tree(self.knowledge, goal)
 
             #check every goal whether now achieved.
             for goal in self.goals:
-                print('>> {} Start checking goal tree... root goal is "{}"'.format(self.spawn_id, goal.name))
-                goal.can_be_achieved(self.knowledge) #check the goal state by looking up the knowledges
-                if goal.goal_state == 'assigned' or goal.goal_state == 'achieved':
-                    msg = "{} {}".format(goal.name, goal.goal_state)
-                    self.msg_to_knowledge(msg)
-
-
-
-
-
-            print("## "+ str(self.spawn_id) + "'s knowledge:")
-            for k in self.knowledge:
-                print(k)
-
-            """
-            print("## "+ str(self.spawn_id) + "'s messages:")
-            for m in self.messages:
-                print(m)
-            """
-
-
-            if self.state.state == 'working':
-                continue
+                goal.can_be_achieved() #check the goal state
 
             # Reason next action
-            selected_action, selected_task = self.next_action(self.goals, self.knowledge)
+            selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
 
             # Perform the action
             if selected_action is not None:
-                #if : check the start condition(assinged? available? ) -> check goal instance in knowledge base
-                #selected_goal.goal_state = 'active'
-                print('>> Now tring to do %s' % (selected_action)) #Active
+
                 if not self.act(selected_action, selected_task):
-                    # Action failed, put the goal back to the queue
-                    selected_task.state = 'failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
-                    #self.goals.append(selected_goal) 일단은 append하지 말고 그냥 failed로 둡시다..... available한 goal로 그냥 두기
-                else:#제일 위로가야한다고 생각/ 주변환경을 물어보고 end condition을 만족했을 때, goal 중 완성된 것이 있나 확인 한 후 achieve로 바꿔줌
-                    #act하고 다시 run할 때 생각
+                    selected_task.state = 'failed'
+                else:
                     #TODO : selected_goal should be leaf goal that act selected_action...?
                     selected_task.state = 'Done'
                     print('>>', selected_task.__name__, 'is Done')

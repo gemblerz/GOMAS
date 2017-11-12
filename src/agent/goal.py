@@ -18,6 +18,29 @@ ACTIVE       | end conditions are met   | ACHIEVED
              | ????                     | FAILED
 -----------------------------------------------------
 
+
+    Task class
+
+    Types,
+        General: General task except Query tasks
+        Query: Find required information in knowledge
+
+
+    States of a task
+-----------------------------------------------------
+STATE        | Description              | NEXT_STATE
+=====================================================
+READY        | General task    --->     | PING
+             | Query task      --->     | ACTIVE
+-----------------------------------------------------
+Ping         | The agent who has higher | ACTIVE
+             | priority takes the task  |
+-----------------------------------------------------
+ACTIVE       | Task Succeeded           | DONE
+             | ????                     | FAILED
+-----------------------------------------------------
+
+
 """
 GOAL_STATE_NOT_ASSIGNED = 'not_assigned'
 GOAL_STATE_ASSIGNED = 'assigned'
@@ -102,16 +125,11 @@ class Goal(object):
             return self, self.tasks
 
     # receive the agent's knowledge to check end condition
-    def can_be_achieved(self, knowledge):
-
-        for k in knowledge:
-            if k is not None and k.type == 'type1' and k.n == 'has_minerals' and k.na == '20':
-                self.goal_state = 'achieved'
-                print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
+    def can_be_achieved(self):
 
         #check subgoals
         for subgoal in self.subgoals:
-            if not subgoal.can_be_achieved(knowledge):
+            if not subgoal.can_be_achieved():
                 print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
 
@@ -120,8 +138,6 @@ class Goal(object):
             if task.state != 'Done':
                 print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
-
-
 
         return True
 
@@ -164,10 +180,11 @@ class Goal(object):
             return None
 
 class Task(object):
-    def __init__(self, task_name='', arguments={}):
+    def __init__(self, task_name='', arguments={}, type=''):
         self.__name__ = task_name
         self.arguments = arguments
         self.state = 'Ready'
+        self.type = type
 
     def __repr__(self):
         return '[Task \'%s\' with \'%s\']' % (self.__name__, self.arguments)
