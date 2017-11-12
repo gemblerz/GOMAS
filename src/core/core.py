@@ -36,12 +36,12 @@ class Core(object):
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher\
                                   --listen 127.0.0.1\
                                   --port %s"%self.port
-            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap_solo.SC2Map'
+            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap.SC2Map'
 
         elif sys.platform == "win32": # Windows
 
             self.launcher_path = 'C:\\"Program Files (x86)"\\"StarCraft II"\\"Support"\SC2Switcher.exe --listen 127.0.0.1 --port %s"'%self.port
-            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap_solo.SC2Map'
+            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap.SC2Map'
 
         else:
             logger.error("Sorry, we cannot start on your OS.")
@@ -52,6 +52,9 @@ class Core(object):
         # Set the Proxy and Agents Threads.
         self.thread_proxy = threading.Thread(target=proxy)
         self.threads_agents = []
+
+        # for test two agent sys
+        self.spanwed_agent=0
 
         # Set the dictionary to save the information from SC2 client.
         self.dict_probe = {}
@@ -180,19 +183,26 @@ class Core(object):
                     self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
                 else:
                     # new probe
+                    if self.spawned_agent>=2:
+                        continue
+
                     self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
 
                     # new thread starts -> spawn a new probe.
                     self.threads_agents.append(Agent())
+
+                    # If the agent have to know their name
+                    #send_knowledge={}
+                    #send_knowledge.update(self.initial_knowledge)
+                    #send_knowledge.update({''})
+
                     self.threads_agents[-1].spawn(unit.tag, 84,
-                                        initial_knowledge={
-                                            'I' : {'am' : str(unit.tag) },
-                                            'minerals' : {'gathered' : '0'}
-                                        },
-                                        initial_goals=[create_goal_set(self.goal)]
+                                        initial_knowledge = self.initial_knowledge,
+                                        initial_goals = [create_goal_set(self.goal)]
                                     )
 
                     self.threads_agents[-1].start()
+                    self.spanwed_agent+=1
 
             if unit.unit_type == 341: # Mineral tag
 
@@ -253,19 +263,28 @@ class Core(object):
 
 
 
-        self.goal = {'goal': 'gather 100 minerals',
+        self.goal = {'goal': 'gather 20 minerals',
                      'trigger': [],
                      'satisfy': [
                          ('type2', 'i', 'have', ['100 minerals'])
                      ],
                      'precedent': [],
                      'require': [
-                         ['move', {'target': 'point', 'pos_x': 10, 'pos_y': 10}],
-                         ['gather', {'target': 'unit', 'unit_tag': list_minerals[0]}],  # target: unit
+                         ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}],  # target: unit
+                         ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}],
+                         ['check mineral 1', '20'],
+                         ['check mineral 2', '20']
                      ]
 
                      }
 
+    def set_init_kn(self):
+        self.initial_knowledge =    { self.goal['goal'] : { 'is' : 'Not Assigned' },
+                                      'gather 1' : { 'is' : 'Ready' },
+                                      'gather 2' : { 'is' : 'Ready' },
+                                      'check mineral 1' : { 'is' : 'Ready'},
+                                      'check mineral 2' : { 'is' : 'Ready'}
+                                    }
 
     '''
         The Main Part of Core.
@@ -275,6 +294,7 @@ class Core(object):
         self._start_new_game()
         self._start_proxy()
         self.set_goal()
+        self.set_init_kn()
 
         while True:
 
