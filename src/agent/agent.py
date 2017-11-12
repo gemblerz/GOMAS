@@ -210,8 +210,11 @@ class Agent(threading.Thread):
         task.state = 'Active'
 
         #TODO for sanguk : State change --> msg
-        msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
-        self.msg_to_knowledge(msg)
+        # Update task state
+        self.knowledge[task.__name__].update({'is' : 'Ready'})
+
+        #msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
+        #self.msg_to_knowledge(msg)
 
         logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
         if action.__name__ == 'move':
