@@ -220,7 +220,8 @@ class Agent(threading.Thread):
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
         elif action.__name__ == 'check':
-            action.perform_query()
+            self.query(task.__name__, task.arguments['target'], task.arguments['amount'])
+            #action.perform_query()
             return False
         else:
             print('act function --> else ERROR!!!!!!')
@@ -231,7 +232,8 @@ class Agent(threading.Thread):
 
         if target in self.knowledge:
             current_amount = self.knowledge[target]['is']
-            if current_amount >= amount:
+            if int(current_amount) >= int(amount):
+                print("오면안됨")
                 #knowledgebase update
                 self.knowledge[task_name].update({'is': 'Done'})
                 self.state.__init__()
@@ -294,23 +296,30 @@ class Agent(threading.Thread):
                            #TODO - SangUk will do!
                            self.knowledge[task.__name__].update({'is' : ('Ping', self.spawn_id)})
                            '''
-                           return None, None
+                           break
 
                         elif task.state == 'Ping' :
                             pinglist = self.knowledge[task.__name__]['ping']
 
                             amImin = True
                             for ping in pinglist:
-                                if self.spawn_id > ping:
+                                if int(self.spawn_id) > int(ping):
                                     amImin = False
                                     break
 
                             if amImin:
+                                pinglist.append(self.spawn_id)
+                                self.knowledge[task.__name__].update({'ping' : pinglist})
+
                                 action = self._has_action_for_task(task)
                                 if action is not None:
                                     list_actions.append((action, task))
+                                    break
                             else:
                                 return None, None
+
+                        elif task.state == 'Active':
+                            return None, None
 
                 elif mentalstate == 'working':
                     if task.type == 'Query' and (task.state == 'Ready' or task.state == 'Active'):
@@ -340,6 +349,7 @@ class Agent(threading.Thread):
         # check task
         for task in goal.tasks:
             if task.__name__ in knowledge:
+                print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
                 task.state = knowledge[task.__name__]['is']
 
         return True
@@ -393,7 +403,7 @@ class Agent(threading.Thread):
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
-
+            print(self.spawn_id, "다음은!!! ", selected_action, selected_task)
             # Perform the action
             if selected_action is not None:
                 if not self.act(selected_action, selected_task):
@@ -402,6 +412,7 @@ class Agent(threading.Thread):
                 else:
                     #General task come here!
                     selected_task.state = 'Done'
+                    self.knowledge[selected_task.__name__].update({'is' : 'Done'})
 
             else:
                 if self.goals[0].goal_state == 'achieved':

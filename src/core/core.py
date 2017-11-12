@@ -336,9 +336,10 @@ class Core(object):
                     #json.loads(req)
                     self.comm_sc2.send(action=req)
 
+            #TODO : Randomly Occured Error...
             self._train_probe(list(self.dict_nexus.keys())[0])
 
-            time.sleep(1)
+            #time.sleep()
 
         print("Test Complete")
         self.comm_agents.context.term()
