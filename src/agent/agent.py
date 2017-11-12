@@ -243,9 +243,9 @@ class Agent(threading.Thread):
     '''
     def tell(self, statement):
         logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
-        msg = str(self.spawn_id) + " is " + self.state.state
-        print(">> {} is telling : {}".format(self.spawn_id, msg))
-        self.comm_agents.send(msg, broadcast=True)
+        #msg = str(self.spawn_id) + " is " + self.state.state
+        print(">> {} is telling : {}".format(self.spawn_id, statement))
+        self.comm_agents.send(statement, broadcast=True)
 
 
     '''
@@ -406,6 +406,8 @@ class Agent(threading.Thread):
                 pass
 
             #TODO for Tony : Please Broadcast knowledge...
+            self.tell(json.dumps(self.knowledge))
+
             time.sleep(self.discrete_time_step)
 
 
