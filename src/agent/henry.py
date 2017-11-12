@@ -21,10 +21,10 @@ if __name__ == '__main__':
 
 	temp = Knowledge()
 	temp['has']={'i':'temp'}
-	dict1= {'I' : {'am' : []}}
-	dict2= {'I' : {'am' : [('hey','here')]}}
+	dict1= {'I' : {'ping' : []}}
+	dict2= {'I' : {'ping' : [('hey','here')]}}
 	dict3={'you' : {'are' : '30'}}
-	dict4={'I' : {'am' : ['testing']}}
+	dict4={'I' : {'ping' : ['testing']}}
 
 	temp.update(dict1)
 	temp.update(dict2)

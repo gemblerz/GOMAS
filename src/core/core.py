@@ -306,12 +306,12 @@ class Core(object):
             data = {}
             data['minerals']={}
             data['minerals']['gathered'] = str(minerals)
-            data['minerals']['are']=self.dict_mineral.items()
+            data['minerals']['are']=list(self.dict_mineral.items())
             data['food']={}
             data['food']['has'] = str(food_cap)
             data['food']['used'] = str(food_used)
-            data['probes']={'are',self.dict_probe.items()}
-            data['nexus']={'are',self.dict_nexus.items()}
+            #data['probes']={'are':self.dict_probe.items()}
+            #data['nexus']={'are':self.dict_nexus.items()}
 
             json_string=json.dumps(data)
             self.broadcast(json_string)

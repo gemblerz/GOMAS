@@ -28,11 +28,8 @@ class Knowledge(dict):
                 if subject in self:
                     # for nested dict
                     for verb in other[subject]:
-                        if verb in self[subject]:
-                            if type(self[subject][verb]) == list:
-                                self[subject][verb].append(other[subject][verb])
-                            else:
-                                self[subject][verb] = other[subject][verb]
+                        if verb == 'ping':
+                            self[subject][verb].extend(other[subject][verb])
                         else:
                             self[subject][verb] = other[subject][verb]
                 else:
@@ -41,15 +38,12 @@ class Knowledge(dict):
             if subject in self:
                 # for nested dict
                 for verb in kwargs[subject]:
-                    if verb in self[subject]:
-                        if type(self[subject][verb]) == list:
-                            self[subject][verb].append(kwargs[subject][verb])
-                        else:
-                            self[subject][verb] = kwargs[subject][verb]
+                    if verb == 'ping':
+                        self[subject][verb].extend(kwargs[subject][verb])
                     else:
                         self[subject][verb] = kwargs[subject][verb]
-                else:
-                    self[subject] = other[subject]
+            else:
+                self[subject] = kwargs[subject]
 
 """
 class Knowledge(object):
