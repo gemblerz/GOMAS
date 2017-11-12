@@ -283,10 +283,28 @@ class Agent(threading.Thread):
 
                 if mentalstate == 'idle':
                     #ping
+                    if task.type == 'General':
+                        if task.state == 'Ready' :
+                           task.state = 'Ping'
 
+                           #TODO - SangUk will do!
+                           self.knowledge[task.__name__].update({'is' : [('Ping', self.spawn_id)]})
 
+                        elif task.state == 'Ping' :
+                            pinglist = self.knowledge[task.__name__]['is']
 
+                            amImin = True
+                            for ping in pinglist:
+                                if self.spawn_id > ping[1]:
+                                    amImin = False
+                                    break
 
+                            if amImin:
+                                action = self._has_action_for_task(task)
+                                if action is not None:
+                                    list_actions.append((action, task))
+                            else:
+                                return None, None
 
                 elif mentalstate == 'working':
                     if task.type == 'Query' and (task.state == 'Ready' or task.state == 'Active'):
@@ -294,25 +312,6 @@ class Agent(threading.Thread):
                         action = self._has_action_for_task(task)
                         if action is not None:
                             list_actions.append((action, task))
-
-
-
-                if task.state == 'Ready':
-                    action = self._has_action_for_task(task)
-                    if action is not None:
-                        list_actions.append((action, task))
-
-        # g = current_goal.pop() #list에는 더 이상 존재하지 않음...ㅜ.ㅜ pop보다는 그냥 refernce
-        # logger.info('current goal is %s' % (g,))
-        # #g.goal_state = 'Active'
-
-        # # List up possible actions that can achieve the goal
-        # # If the agent knows how to attain the goal
-        # for task in g.get_tasks():
-        #     action = self._has_action_for_task(task)
-        #     if action is not None:
-        #         list_actions.append(action)
-        #         g.goal_state = 'Assigned'
 
         # Select actions from the list of actions in terms of the current
         if len(list_actions) == 0:
@@ -400,7 +399,6 @@ class Agent(threading.Thread):
 
             else:
                 if self.goals[0].goal_state == 'achieved':
-                    print(">> Top goal is achieved '{}' destroying".format(self.spawn_id))
                     self.destroy()
                     break
                 pass

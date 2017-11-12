@@ -272,11 +272,11 @@ class Core(object):
                      'require': [
                          ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}],  # target: unit
                          ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}],
-                         ['check mineral 1', '20'],
-                         ['check mineral 2', '20']
+                         ['check mineral 1', {'target': 'mineral', 'amount': 20}],
+                         ['check mineral 2', {'target': 'mineral', 'amount': 20}],
                      ]
 
-                     }
+                     }``
 
     def set_init_kn(self):
         self.initial_knowledge =    { self.goal['goal'] : { 'is' : 'Not Assigned' },
