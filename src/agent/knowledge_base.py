@@ -13,8 +13,8 @@
 """
 
 class Knowledge(dict):
-    def __init__(self, *arg, **kw):
-        super(self).__init__(*arg, **kw)
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
 
     # override
 
