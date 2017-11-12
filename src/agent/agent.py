@@ -285,17 +285,23 @@ class Agent(threading.Thread):
                     if task.type == 'General':
                         if task.state == 'Ready' :
                            task.state = 'Ping'
+                           pinglist = []
+                           pinglist.append(self.spawn_id)
+                           self.knowledge[task.__name__].update({'is' : 'Ping'})
+                           self.knowledge[task.__name__].update({'ping' : pinglist})
 
+                           '''
                            #TODO - SangUk will do!
-                           self.knowledge[task.__name__].update({'is' : [('Ping', self.spawn_id)]})
+                           self.knowledge[task.__name__].update({'is' : ('Ping', self.spawn_id)})
+                           '''
                            return None, None
 
                         elif task.state == 'Ping' :
-                            pinglist = self.knowledge[task.__name__]['is']
+                            pinglist = self.knowledge[task.__name__]['ping']
 
                             amImin = True
                             for ping in pinglist:
-                                if self.spawn_id > ping[1]:
+                                if self.spawn_id > ping:
                                     amImin = False
                                     break
 
