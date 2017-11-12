@@ -50,7 +50,7 @@ class Agent(threading.Thread):
         self.state = MentalState()
 
         self.actions = get_basic_actions()
-        self.knowledge = {}
+        self.knowledge = Knowledge()
         self.goals = []
         self.messages = []
 
@@ -63,7 +63,7 @@ class Agent(threading.Thread):
     def _load_goals(self, goals):
         self.goals = goals
 
-    def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
+    def spawn( self, spawn_id, unit_id, initial_knowledge={}, initial_goals=[]):
         logging.info(str(spawn_id) + ' is being spawned...')
 
         assert unit_id in units
@@ -151,13 +151,10 @@ class Agent(threading.Thread):
         message = self.comm_agents.read()
         if message.startswith('broadcasting'):
             message=message[13:]
-            if message.startswith('{'):
-                self.json_to_knowledge(message)
-            else:
-                self.msg_to_knowledge(message)
-        self.messages.append(message)
+            self.knowledge.update(json.loads(message))
 
 
+    """
     def json_to_knowledge(self, message):
         json_msg = json.loads(message)
         has_minerals = json_msg["has_minerals"]
@@ -167,7 +164,7 @@ class Agent(threading.Thread):
         minerals = json_msg["minerals"] #mineral dictionary
         nexus = json_msg["nexus"] #nexus dictionary
         self.knowledge.append(Knowledge('type1', 'has_minerals', has_minerals))
-
+    """
 
 
     """
@@ -237,6 +234,7 @@ class Agent(threading.Thread):
             if current_amount >= amount:
                 #knowledgebase update
                 self.knowledge[task_name].update({'is': 'Done'})
+                self.state.__init__()
 
     '''
         Delivering information to other agents
@@ -279,6 +277,7 @@ class Agent(threading.Thread):
             leaf_goal, tasks = goal.get_available_goal_and_tasks()
             if len(tasks) != 0:
                 leaf_goal.goal_state = 'assigned'
+                self.knowledge[leaf_goal.name].update({'is' : 'assigned'})
             for task in tasks:
 
                 if mentalstate == 'idle':
@@ -289,6 +288,7 @@ class Agent(threading.Thread):
 
                            #TODO - SangUk will do!
                            self.knowledge[task.__name__].update({'is' : [('Ping', self.spawn_id)]})
+                           return None, None
 
                         elif task.state == 'Ping' :
                             pinglist = self.knowledge[task.__name__]['is']
@@ -332,7 +332,7 @@ class Agent(threading.Thread):
 
 
         # check task
-        for task in self.tasks:
+        for task in goal.tasks:
             if task.__name__ in knowledge:
                 task.state = knowledge[task.__name__]['is']
 
@@ -431,8 +431,7 @@ if __name__ == '__main__':
                  }
             ]
             }
-    """
-
+    
     goal = {'goal': 'gather 100 minerals',
             'trigger': [],
             'satisfy': [
@@ -460,3 +459,4 @@ if __name__ == '__main__':
         pass
     probe.destroy()
     print('The agent is terminated.')
+    """

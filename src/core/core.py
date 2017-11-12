@@ -54,7 +54,7 @@ class Core(object):
         self.threads_agents = []
 
         # for test two agent sys
-        self.spanwed_agent=0
+        self.spawned_agent=0
 
         # Set the dictionary to save the information from SC2 client.
         self.dict_probe = {}
@@ -202,7 +202,7 @@ class Core(object):
                                     )
 
                     self.threads_agents[-1].start()
-                    self.spanwed_agent+=1
+                    self.spawned_agent+=1
 
             if unit.unit_type == 341: # Mineral tag
 
@@ -270,13 +270,13 @@ class Core(object):
                      ],
                      'precedent': [],
                      'require': [
-                         ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}],  # target: unit
-                         ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}],
-                         ['check mineral 1', {'target': 'mineral', 'amount': 20}],
-                         ['check mineral 2', {'target': 'mineral', 'amount': 20}],
+                         ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],  # target: unit
+                         ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                         ['check mineral 1', {'target': 'mineral', 'amount': 20}, 'Query'],
+                         ['check mineral 2', {'target': 'mineral', 'amount': 20}, 'Query'],
                      ]
 
-                     }``
+                     }
 
     def set_init_kn(self):
         self.initial_knowledge =    { self.goal['goal'] : { 'is' : 'Not Assigned' },

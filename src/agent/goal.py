@@ -78,7 +78,7 @@ def create_goal_set(description_dict):
         dependents = description_dict['require']
         for dependent in dependents:
             if isinstance(dependent, list):  # Task
-                g.set_required_task(Task(dependent[0], dependent[1]))
+                g.set_required_task(Task(dependent[0], dependent[1], dependent[2]))
             elif isinstance(dependent, dict): # Goal
                 g.set_required_goal(create_goal_set(dependent))
             else:
