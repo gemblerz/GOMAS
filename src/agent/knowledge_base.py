@@ -11,6 +11,7 @@ class Knowledge(dict):
     def __init__(self, *arg, **kw):
         super(self).__init__(*arg, **kw)
 
+
 """
 class Knowledge(object):
     def __init__(self, knowledge_type, *args):
