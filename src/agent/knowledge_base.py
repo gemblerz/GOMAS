@@ -7,9 +7,49 @@
         type3: verb, (noun/verb noun/adjective)    e.g., (attack, (target, hurt)), (attack, (drain, my_energy))
 """
 
+"""
+    type: dict[subject][verb][value]
+    Nested Dictionary
+"""
+
 class Knowledge(dict):
     def __init__(self, *arg, **kw):
         super(self).__init__(*arg, **kw)
+
+    # override
+
+    def update(self, *args, **kwargs):
+        if args:
+            if len(args) > 1:
+                raise TypeError("update expected at most 1 arguments, "
+                                "got %d" % len(args))
+            other = dict(args[0])
+            for subject in other:
+                if subject in self:
+                    # for nested dict
+                    for verb in other[subject]:
+                        if verb in self[subject]:
+                            if type(self[subject][verb]) == list:
+                                self[subject][verb].append(other[subject][verb])
+                            else:
+                                self[subject][verb] = other[subject][verb]
+                        else:
+                            self[subject][verb] = other[subject][verb]
+                else:
+                    self[subject] = other[subject]
+        for subject in kwargs:
+            if subject in self:
+                # for nested dict
+                for verb in kwargs[subject]:
+                    if verb in self[subject]:
+                        if type(self[subject][verb]) == list:
+                            self[subject][verb].append(kwargs[subject][verb])
+                        else:
+                            self[subject][verb] = kwargs[subject][verb]
+                    else:
+                        self[subject][verb] = kwargs[subject][verb]
+                else:
+                    self[subject] = other[subject]
 
 """
 class Knowledge(object):
