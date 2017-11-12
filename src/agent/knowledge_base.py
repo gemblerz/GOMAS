@@ -7,6 +7,11 @@
         type3: verb, (noun/verb noun/adjective)    e.g., (attack, (target, hurt)), (attack, (drain, my_energy))
 """
 
+class Knowledge(dict):
+    def __init__(self, *arg, **kw):
+        super(self).__init__(*arg, **kw)
+
+"""
 class Knowledge(object):
     def __init__(self, knowledge_type, *args):
         if knowledge_type == 'type1':
@@ -30,12 +35,16 @@ class Knowledge(object):
 
 
     def __str__(self):
+
+
+
         if self.type == 'type1':
             return self.n + " " + str(self.na)
         elif self.type == 'type2':
             return self.n + " " + self.v + " " + str(self.o)
         else:
             return "unknown type"
+"""
 
 
     """
