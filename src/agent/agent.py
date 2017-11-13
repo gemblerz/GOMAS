@@ -334,7 +334,8 @@ class Agent(threading.Thread):
     def update_goal_tree(self, knowledge, goal):
 
         if goal.name in knowledge:
-            goal.goal_state = knowledge[goal.name]['is']
+            if goal.goal_state != 'achieved':
+                goal.goal_state = knowledge[goal.name]['is']
 
         # check subgoals
         for subgoal in goal.subgoals:
@@ -372,6 +373,8 @@ class Agent(threading.Thread):
             #     self.answer(query)
 
             # Perceive environment
+            self.perceive()
+            self.perceive()
             self.perceive()
             self.perceive()
             self.perceive()

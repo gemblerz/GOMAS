@@ -183,7 +183,7 @@ class Core(object):
                     self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
                 else:
                     # new probe
-                    if self.spawned_agent>=2:
+                    if self.spawned_agent>=4:
                         continue
 
                     self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
@@ -272,6 +272,8 @@ class Core(object):
                      'require': [
                          ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],  # target: unit
                          ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                         ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                         ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
                          ['check mineral 1', {'target': 'minerals', 'amount': 50}, 'Query'],
                          #['check mineral 2', {'target': 'minerals', 'amount': 20}, 'Query'],
                      ]
@@ -282,6 +284,8 @@ class Core(object):
         self.initial_knowledge =    { self.goal['goal'] : { 'is' : 'Not Assigned' },
                                       'gather 1' : { 'is' : 'Ready' },
                                       'gather 2' : { 'is' : 'Ready' },
+                                      'gather 3' : { 'is' : 'Ready' },
+                                      'gather 4' : { 'is' : 'Ready' },
                                       'check mineral 1' : { 'is' : 'Ready'},
                                       #'check mineral 2' : { 'is' : 'Ready'}
                                     }
