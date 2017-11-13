@@ -343,7 +343,7 @@ class Core(object):
             #TODO : Randomly Occured Error...
             #self._train_probe(list(self.dict_nexus.keys())[0])
 
-            time.sleep(1)
+            time.sleep(0.1)
 
         print("Test Complete")
         self.comm_agents.context.term()
