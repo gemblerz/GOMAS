@@ -13,6 +13,7 @@ import sys
 import time
 import logging
 import threading
+import json
 
 sys.path.append('../')
 from units import units
@@ -44,24 +45,25 @@ class Agent(threading.Thread):
         threading.Thread.__init__(self)
 
 
-        self.discrete_time_step = 1 # sec
+        self.discrete_time_step = 0.1 # sec
         self.alive = False
         self.state = MentalState()
 
         self.actions = get_basic_actions()
-        self.knowledge = []
+        self.knowledge = Knowledge()
         self.goals = []
         self.messages = []
 
     def _load_knowledge(self, knowledge):
-        for k in knowledge:
-            self.tuple_to_knowledge(k)
+        for key,value in knowledge.items():
+            self.knowledge[key]=value
+            #self.tuple_to_knowledge(k)
             #self.knowledge.append(k)
 
     def _load_goals(self, goals):
         self.goals = goals
 
-    def spawn( self, spawn_id, unit_id, initial_knowledge=[], initial_goals=[]):
+    def spawn( self, spawn_id, unit_id, initial_knowledge={}, initial_goals=[]):
         logging.info(str(spawn_id) + ' is being spawned...')
 
         assert unit_id in units
@@ -149,8 +151,20 @@ class Agent(threading.Thread):
         message = self.comm_agents.read()
         if message.startswith('broadcasting'):
             message=message[13:]
-        self.msg_to_knowledge(message)
-        self.messages.append(message)
+            self.knowledge.update(json.loads(message))
+
+
+    """
+    def json_to_knowledge(self, message):
+        json_msg = json.loads(message)
+        has_minerals = json_msg["has_minerals"]
+        food_cap = json_msg["food_cap"]
+        food_used = json_msg["food_used"]
+        probe = json_msg["probe"]  #probe dictionary
+        minerals = json_msg["minerals"] #mineral dictionary
+        nexus = json_msg["nexus"] #nexus dictionary
+        self.knowledge.append(Knowledge('type1', 'has_minerals', has_minerals))
+    """
 
 
     """
@@ -183,39 +197,49 @@ class Agent(threading.Thread):
         else:
             pass
 
-
-
     '''
         Information / actions going to simulator
     '''
     def act(self, action, task):
         self.state.change_state()
-        task.state = 'Active'
-        msg = "{} {} {}".format(str(self.spawn_id), self.state.state, task.__name__)
-        self.msg_to_knowledge(msg)
+
+        # Update task state
+        self.knowledge[task.__name__].update({'is': 'Active'})
 
         logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
         if action.__name__ == 'move':
-            words = action.require['target'] + " " + str(action.require['pos_x']) + " " + str(action.require['pos_y'])
-            self.tell(words)
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
         elif action.__name__ == 'gather':
-            words = action.require['target'] + " " + str(action.require['unit_tag'])
-            self.tell(words)
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
+        elif action.__name__ == 'check':
+            self.query(task.__name__, task.arguments['target'], task.arguments['amount'])
+            #action.perform_query()
+            return False
         else:
-            action.perform()
+            print('act function --> else ERROR!!!!!!')
         return True
+
+    def query(self, task_name, target, amount):
+        #find knowledgebase
+
+        if target in self.knowledge:
+            current_amount = self.knowledge[target]['gathered']
+            if int(current_amount) >= int(amount):
+                print("성취됨!!!!!!!!!!!!!")
+                #knowledgebase update
+                self.knowledge[task_name].update({'is': 'Done'})
+                self.state.__init__()
 
     '''
         Delivering information to other agents
     '''
     def tell(self, statement):
         logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
-        msg = str(self.spawn_id) + " is " + self.state.state
-        self.comm_agents.send(msg, broadcast=True)
+        #msg = str(self.spawn_id) + " is " + self.state.state
+        print(">> {} is telling : {}".format(self.spawn_id, statement))
+        self.comm_agents.send(statement, broadcast=True)
 
 
     '''
@@ -237,7 +261,7 @@ class Agent(threading.Thread):
     '''
         Returns available actions based on the desires in the current situation
     '''
-    def next_action(self, current_goal, current_knowledge):
+    def next_action(self, current_goal, current_knowledge, mentalstate):
         list_actions = []
         if len(current_goal) == 0:
             # TODO: is an action always triggered by a goal?
@@ -248,24 +272,56 @@ class Agent(threading.Thread):
             # Method name is dirty
             leaf_goal, tasks = goal.get_available_goal_and_tasks()
             if len(tasks) != 0:
-                leaf_goal.goal_state = 'assigned'
+                if leaf_goal.goal_state != 'achieved':
+                    leaf_goal.goal_state = 'assigned'
+                    self.knowledge[leaf_goal.name].update({'is' : 'assigned'})
             for task in tasks:
-                if task.state == 'Ready':
-                    action = self._has_action_for_task(task)
-                    if action is not None:
-                        list_actions.append((action, task))
 
-        # g = current_goal.pop() #list에는 더 이상 존재하지 않음...ㅜ.ㅜ pop보다는 그냥 refernce
-        # logger.info('current goal is %s' % (g,))
-        # #g.goal_state = 'Active'
+                if mentalstate == 'idle':
+                    #ping
+                    if task.type == 'General':
+                        if task.state == 'Ready' :
+                           task.state = 'Ping'
+                           pinglist = []
+                           pinglist.append(self.spawn_id)
+                           self.knowledge[task.__name__].update({'is' : 'Ping'})
+                           self.knowledge[task.__name__].update({'ping' : pinglist})
 
-        # # List up possible actions that can achieve the goal
-        # # If the agent knows how to attain the goal
-        # for task in g.get_tasks():
-        #     action = self._has_action_for_task(task)
-        #     if action is not None:
-        #         list_actions.append(action)
-        #         g.goal_state = 'Assigned'
+                           '''
+                           #TODO - SangUk will do!
+                           self.knowledge[task.__name__].update({'is' : ('Ping', self.spawn_id)})
+                           '''
+                           break
+
+                        elif task.state == 'Ping' :
+                            pinglist = self.knowledge[task.__name__]['ping']
+
+                            amImin = True
+                            for ping in pinglist:
+                                if int(self.spawn_id) > int(ping):
+                                    amImin = False
+                                    break
+
+                            if amImin:
+                                pinglist.append(self.spawn_id)
+                                self.knowledge[task.__name__].update({'ping' : pinglist})
+
+                                action = self._has_action_for_task(task)
+                                if action is not None:
+                                    list_actions.append((action, task))
+                                    break
+                            else:
+                                return None, None
+
+                        elif task.state == 'Active':
+                            return None, None
+
+                elif mentalstate == 'working':
+                    if task.type == 'Query' and (task.state == 'Ready' or task.state == 'Active'):
+                        #Check whether query task is done
+                        action = self._has_action_for_task(task)
+                        if action is not None:
+                            list_actions.append((action, task))
 
         # Select actions from the list of actions in terms of the current
         if len(list_actions) == 0:
@@ -275,6 +331,29 @@ class Agent(threading.Thread):
         # Return the most beneficial action from the selected actions
         return return_action
 
+    def update_goal_tree(self, knowledge, goal):
+
+        if goal.name in knowledge:
+            if goal.goal_state != 'achieved':
+                goal.goal_state = knowledge[goal.name]['is']
+
+        # check subgoals
+        for subgoal in goal.subgoals:
+            self.update_goal_tree(knowledge, subgoal)
+
+
+        # check task
+        for task in goal.tasks:
+            if task.__name__ in knowledge:
+                print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
+                if knowledge[task.__name__]['is'] == 'Done':
+                    knowledge[task.__name__]['ping'] = []
+                task.state = knowledge[task.__name__]['is']
+
+        return True
+
+
+
     '''
         Main logic runs here (i.e., reasoning)
     '''
@@ -283,6 +362,11 @@ class Agent(threading.Thread):
             # For debugging
             logger.info('%s %d is ticking' % (self.name, self.spawn_id))
             print()
+
+            for k in self.knowledge:
+                print(k)
+
+
             # Check if something to answer
             # query = self.check_being_asked():
             # if query:
@@ -290,8 +374,13 @@ class Agent(threading.Thread):
 
             # Perceive environment
             self.perceive()
+            self.perceive()
+            self.perceive()
+            self.perceive()
+            self.perceive()
 
             #check knowledge and update the goal tree
+            """
             tasks = []
             for g in self.goals:
                 tasks = g.get_available_tasks()
@@ -304,64 +393,52 @@ class Agent(threading.Thread):
                     for task in tasks:
                         if k.n == task.__name__:
                             task.state = k.na
+            """
 
+            # check knowledge and update the goal tree
+            for goal in self.goals:
+                self.update_goal_tree(self.knowledge, goal)
 
             #check every goal whether now achieved.
             for goal in self.goals:
-                print('>> {} Start checking goal tree... root goal is "{}"'.format(self.spawn_id, goal.name))
-                goal.can_be_achieved()
-                if goal.goal_state == 'assigned' or goal.goal_state == 'achieved':
-                    msg = "{} {}".format(goal.name, goal.goal_state)
-                    self.msg_to_knowledge(msg)
-
-
-
-
-
-            print("## "+ str(self.spawn_id) + "'s knowledge:")
-            for k in self.knowledge:
-                print(k)
-
-            print("## "+ str(self.spawn_id) + "'s messages:")
-            for m in self.messages:
-                print(m)
-
-            if self.state.state == 'working':
-                continue
+                if goal.can_be_achieved(): #check the goal state
+                    print('뭐 좀 찍어볼까?????')
+                    self.knowledge[goal.name].update({'is' : 'achieved'})
+                    print(self.knowledge[goal.name]['is'])
 
             # Reason next action
-            selected_action, selected_task = self.next_action(self.goals, self.knowledge)
-
+            selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
+            print(self.spawn_id, "다음은!!! ", selected_action, selected_task)
             # Perform the action
             if selected_action is not None:
-                #if : check the start condition(assinged? available? ) -> check goal instance in knowledge base
-                #selected_goal.goal_state = 'active'
-                print('>> Now tring to do %s' % (selected_action)) #Active
                 if not self.act(selected_action, selected_task):
-                    # Action failed, put the goal back to the queue
-                    selected_task.state = 'failed' #다음 상태를 고를 그냥 쉬어가는 state라고 생각
-                    #self.goals.append(selected_goal) 일단은 append하지 말고 그냥 failed로 둡시다..... available한 goal로 그냥 두기
-                else:#제일 위로가야한다고 생각/ 주변환경을 물어보고 end condition을 만족했을 때, goal 중 완성된 것이 있나 확인 한 후 achieve로 바꿔줌
-                    #act하고 다시 run할 때 생각
-                    #TODO : selected_goal should be leaf goal that act selected_action...?
+                    #Query task come here!
+                    pass
+                else:
+                    #General task come here!
                     selected_task.state = 'Done'
-                    print('>>', selected_task.__name__, 'is Done')
+                    self.knowledge[selected_task.__name__]['ping'] = []
+                    self.knowledge[selected_task.__name__].update({'is' : 'Done'})
 
             else:
-                print(">> %d's selected action is None: Destroy" % (self.spawn_id))
-                break
-            # May need to tell others the action that is about to be performed
-            # self.tell('%d performs %s' % (self.id, action))
-            # Or
-            # May tell others the action has performed
+                print('다 됐다!!!!!!!!!!!!!!!!!!!')
+                if self.goals[0].goal_state == 'achieved':
+                    print('여기 들어옴?? ???????')
+                    for act in self.actions:
+                        if act.__name__ == 'move':
+                            req=act.perform(self.spawn_id)
+                            self.comm_agents.send(req,who='core')
 
-            # Sleep a while to prevent meaningless burst looping
-            self.state.__init__()
+                    #self.destroy()
+                    #break
+                pass
+
+            #TODO for Tony : Please Broadcast knowledge...
+            self.tell(json.dumps(self.knowledge))
+
             time.sleep(self.discrete_time_step)
 
-        # Stopped thinking
-        # Means it is dead
-        # bye bye
+
 
 '''
     For testing
@@ -384,8 +461,7 @@ if __name__ == '__main__':
                  }
             ]
             }
-    """
-
+    
     goal = {'goal': 'gather 100 minerals',
             'trigger': [],
             'satisfy': [
@@ -413,3 +489,4 @@ if __name__ == '__main__':
         pass
     probe.destroy()
     print('The agent is terminated.')
+    """
