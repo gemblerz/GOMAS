@@ -197,8 +197,6 @@ class Agent(threading.Thread):
         else:
             pass
 
-
-
     '''
         Information / actions going to simulator
     '''
@@ -210,13 +208,9 @@ class Agent(threading.Thread):
 
         logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
         if action.__name__ == 'move':
-            words = action.require['target'] + " " + str(action.require['pos_x']) + " " + str(action.require['pos_y'])
-            self.tell(words)
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
         elif action.__name__ == 'gather':
-            words = action.require['target'] + " " + str(action.require['unit_tag'])
-            self.tell(words)
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
         elif action.__name__ == 'check':
@@ -231,9 +225,9 @@ class Agent(threading.Thread):
         #find knowledgebase
 
         if target in self.knowledge:
-            current_amount = self.knowledge[target]['is']
+            current_amount = self.knowledge[target]['gathered']
             if int(current_amount) >= int(amount):
-                print("오면안됨")
+                print("성취됨!!!!!!!!!!!!!")
                 #knowledgebase update
                 self.knowledge[task_name].update({'is': 'Done'})
                 self.state.__init__()
@@ -278,8 +272,9 @@ class Agent(threading.Thread):
             # Method name is dirty
             leaf_goal, tasks = goal.get_available_goal_and_tasks()
             if len(tasks) != 0:
-                leaf_goal.goal_state = 'assigned'
-                self.knowledge[leaf_goal.name].update({'is' : 'assigned'})
+                if leaf_goal.goal_state != 'achieved':
+                    leaf_goal.goal_state = 'assigned'
+                    self.knowledge[leaf_goal.name].update({'is' : 'assigned'})
             for task in tasks:
 
                 if mentalstate == 'idle':
@@ -350,6 +345,8 @@ class Agent(threading.Thread):
         for task in goal.tasks:
             if task.__name__ in knowledge:
                 print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
+                if knowledge[task.__name__]['is'] == 'Done':
+                    knowledge[task.__name__]['ping'] = []
                 task.state = knowledge[task.__name__]['is']
 
         return True
@@ -376,6 +373,8 @@ class Agent(threading.Thread):
 
             # Perceive environment
             self.perceive()
+            self.perceive()
+            self.perceive()
 
             #check knowledge and update the goal tree
             """
@@ -399,7 +398,10 @@ class Agent(threading.Thread):
 
             #check every goal whether now achieved.
             for goal in self.goals:
-                goal.can_be_achieved() #check the goal state
+                if goal.can_be_achieved(): #check the goal state
+                    print('뭐 좀 찍어볼까?????')
+                    self.knowledge[goal.name].update({'is' : 'achieved'})
+                    print(self.knowledge[goal.name]['is'])
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
@@ -412,12 +414,20 @@ class Agent(threading.Thread):
                 else:
                     #General task come here!
                     selected_task.state = 'Done'
+                    self.knowledge[selected_task.__name__]['ping'] = []
                     self.knowledge[selected_task.__name__].update({'is' : 'Done'})
 
             else:
+                print('다 됐다!!!!!!!!!!!!!!!!!!!')
                 if self.goals[0].goal_state == 'achieved':
-                    self.destroy()
-                    break
+                    print('여기 들어옴?? ???????')
+                    for act in self.actions:
+                        if act.__name__ == 'move':
+                            req=act.perform(self.spawn_id)
+                            self.comm_agents.send(req,who='core')
+
+                    #self.destroy()
+                    #break
                 pass
 
             #TODO for Tony : Please Broadcast knowledge...

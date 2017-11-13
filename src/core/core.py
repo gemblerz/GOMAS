@@ -263,7 +263,7 @@ class Core(object):
 
 
 
-        self.goal = {'goal': 'gather 20 minerals',
+        self.goal = {'goal': 'gather 50 minerals',
                      'trigger': [],
                      'satisfy': [
                          ('type2', 'i', 'have', ['100 minerals'])
@@ -272,8 +272,8 @@ class Core(object):
                      'require': [
                          ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],  # target: unit
                          ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                         ['check mineral 1', {'target': 'mineral', 'amount': 20}, 'Query'],
-                         ['check mineral 2', {'target': 'mineral', 'amount': 20}, 'Query'],
+                         ['check mineral 1', {'target': 'minerals', 'amount': 50}, 'Query'],
+                         #['check mineral 2', {'target': 'minerals', 'amount': 20}, 'Query'],
                      ]
 
                      }
@@ -283,7 +283,7 @@ class Core(object):
                                       'gather 1' : { 'is' : 'Ready' },
                                       'gather 2' : { 'is' : 'Ready' },
                                       'check mineral 1' : { 'is' : 'Ready'},
-                                      'check mineral 2' : { 'is' : 'Ready'}
+                                      #'check mineral 2' : { 'is' : 'Ready'}
                                     }
 
     '''
@@ -337,9 +337,9 @@ class Core(object):
                     self.comm_sc2.send(action=req)
 
             #TODO : Randomly Occured Error...
-            self._train_probe(list(self.dict_nexus.keys())[0])
+            #self._train_probe(list(self.dict_nexus.keys())[0])
 
-            #time.sleep()
+            time.sleep(1)
 
         print("Test Complete")
         self.comm_agents.context.term()

@@ -138,7 +138,8 @@ class Goal(object):
             if task.state != 'Done':
                 print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
-
+        self.goal_state = 'achieved'
+        print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
         return True
 
 
