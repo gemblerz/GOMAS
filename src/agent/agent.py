@@ -45,7 +45,7 @@ class Agent(threading.Thread):
         threading.Thread.__init__(self)
 
 
-        self.discrete_time_step = 0.1 # sec
+        self.discrete_time_step = 0.5 # sec
         self.alive = False
         self.state = MentalState()
 
