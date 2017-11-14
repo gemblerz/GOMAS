@@ -329,12 +329,12 @@ class Core(object):
             # Check the End condition
             probes_status=False
             for probe in self.threads_agents:
-                if threading.Thread.isAlive(): # Remain the alive probe. Core must run.
+                if probe.isAlive(): # Remain the alive probe. Core must run.
                     probes_status=True
                     break
 
             # No alive Agents. Exit the program.
-            if probes_status is True:
+            if probes_status is False:
                 self._leave_game()
                 self._quit_sc2()
                 break
