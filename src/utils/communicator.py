@@ -58,9 +58,9 @@ class Communicator(object):
 
     def send(self, message, broadcast=False, who=''):
 
-        if broadcast is True:
+        if broadcast is True: # broadcast to all agents, must be include logging module.
             self.publisher.send_string("%s %s"%('broadcasting',message))
-        elif who != '':
+        elif who != '': # Unicast to special agent, usually use to request action to core.
             self.publisher.send_string("%s %s"%(who,message))
         else:
             logging.error("Doesn't set the target to send msg!")

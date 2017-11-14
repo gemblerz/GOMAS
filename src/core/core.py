@@ -57,6 +57,7 @@ class Core(object):
         self.spawned_agent=0
 
         # Set the dictionary to save the information from SC2 client.
+        # Not Used Yet
         self.dict_probe = {}
         self.dict_mineral = {}
         self.dict_nexus = {}
@@ -239,6 +240,11 @@ class Core(object):
                     Usually use 'broadcast' to 'agents' from 'core' to send the status of player in SC2.
             - perceive_request
                     To get requests from agents, such as to move probe, to gather minerals.
+            - set_goal
+                    Set the goal tree to simulate. The goal is also consisted of dictionary.
+            - set_init_kn
+                    Set the initial knowledge base. It is needed when the agents has spawned newly.
+
     '''
     def _start_proxy(self):
         logger.info("Try to turn on proxy...")
@@ -310,28 +316,31 @@ class Core(object):
             data = {}
             data['minerals']={}
             data['minerals']['gathered'] = str(minerals)
-            data['minerals']['are']=list(self.dict_mineral.items())
-            data['food']={}
-            data['food']['has'] = str(food_cap)
-            data['food']['used'] = str(food_used)
+            #data['minerals']['are']=list(self.dict_mineral.items())
+            #data['food']={}
+            #data['food']['has'] = str(food_cap)
+            #data['food']['used'] = str(food_used)
             #data['probes']={'are':self.dict_probe.items()}
             #data['nexus']={'are':self.dict_nexus.items()}
 
             json_string=json.dumps(data)
             self.broadcast(json_string)
 
-            if minerals>=500: # End option <- Should be delete
+            # Check the End condition
+            probes_status=False
+            for probe in self.threads_agents:
+                if threading.Thread.isAlive(): # Remain the alive probe. Core must run.
+                    probes_status=True
+                    break
 
-                # Should be delete! Cause when the goal is achieved, the agent destroy itself.
-                for probe in self.threads_agents:
-                    probe.destroy()
-
+            # No alive Agents. Exit the program.
+            if probes_status is True:
                 self._leave_game()
                 self._quit_sc2()
                 break
 
-            # Get Requests from agents.
 
+            # Get Requests from agents.
             for i in range(len(self.threads_agents)):
                 req=self.perceive_request()
                 if req.startswith('core'):
