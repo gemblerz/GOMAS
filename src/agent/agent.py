@@ -213,6 +213,9 @@ class Agent(threading.Thread):
         elif action.__name__ == 'gather':
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
+        elif action.__name__ == 'build_pylon':
+            req=action.perform(self.spawn_id)
+            self.comm_agents.send(req, who='core')
         elif action.__name__ == 'check':
             self.query(task.__name__, task.arguments['target'], task.arguments['amount'])
             #action.perform_query()
@@ -401,10 +404,17 @@ class Agent(threading.Thread):
 
             #check every goal whether now achieved.
             for goal in self.goals:
-                if goal.can_be_achieved(): #check the goal state
-                    print('뭐 좀 찍어볼까?????')
+                if goal.can_be_achieved():
+                    print('뭐 좀 찍어볼까????')
                     self.knowledge[goal.name].update({'is' : 'achieved'})
+                    print(goal.name)
                     print(self.knowledge[goal.name]['is'])
+                for subgoal in goal.subgoals:  #update subgoal's state in KB
+                    if subgoal.can_be_achieved(): #check the goal state
+                        print('뭐 좀 찍어볼까?????')
+                        self.knowledge[subgoal.name].update({'is' : 'achieved'})
+                        print(subgoal.name)
+                        print(self.knowledge[subgoal.name]['is'])
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
@@ -424,11 +434,12 @@ class Agent(threading.Thread):
                 print('다 됐다!!!!!!!!!!!!!!!!!!!')
                 if self.goals[0].goal_state == 'achieved':
                     print('여기 들어옴?? ???????')
+                    """
                     for act in self.actions:
                         if act.__name__ == 'move':
                             req=act.perform(self.spawn_id)
                             self.comm_agents.send(req,who='core')
-
+                    """
                     #self.destroy()
                     #break
                 pass

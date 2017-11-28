@@ -263,29 +263,36 @@ class Core(object):
 
 
 
-        self.goal = {'goal': 'gather 50 minerals',
+        self.goal = {'goal': 'I have Pylon',
                      'trigger': [],
                      'satisfy': [
                          ('type2', 'i', 'have', ['100 minerals'])
                      ],
                      'precedent': [],
                      'require': [
-                         ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],  # target: unit
-                         ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                         ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                         ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                         ['check mineral 1', {'target': 'minerals', 'amount': 50}, 'Query'],
-                         #['check mineral 2', {'target': 'minerals', 'amount': 20}, 'Query'],
+                         {'goal': 'gather 100 minerals',
+                            'require': [
+                                ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                # target: unit
+                                ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                ['check mineral 1', {'target': 'minerals', 'amount': 100}, 'Query'],
+                                # ['check mineral 2', {'target': 'minerals', 'amount': 20}, 'Query'],
+                            ]
+                         },
+                         ['build_pylon', {'target': 'point', 'pos_x': 39, 'pos_y': 29 }, 'General'],
                      ]
-
                      }
 
     def set_init_kn(self):
         self.initial_knowledge =    { self.goal['goal'] : { 'is' : 'Not Assigned' },
+                                      'gather 100 minerals' : {'is' : 'Not Assigned'},
                                       'gather 1' : { 'is' : 'Ready' },
                                       'gather 2' : { 'is' : 'Ready' },
                                       'gather 3' : { 'is' : 'Ready' },
                                       'gather 4' : { 'is' : 'Ready' },
+                                      'build_pylon': { 'is' : 'Ready'},
                                       'check mineral 1' : { 'is' : 'Ready'},
                                       #'check mineral 2' : { 'is' : 'Ready'}
                                     }

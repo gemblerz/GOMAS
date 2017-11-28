@@ -39,5 +39,5 @@
       name: build_pylon
       require:
           target: point
-          location_x: 0
-          location_y: 0
+          pos_x: 0
+          pos_y: 0
