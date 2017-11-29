@@ -36,12 +36,12 @@ class Core(object):
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher\
                                   --listen 127.0.0.1\
                                   --port %s"%self.port
-            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap.SC2Map'
+            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap_GG.SC2Map'
 
         elif sys.platform == "win32": # Windows
 
             self.launcher_path = 'C:\\"Program Files (x86)"\\"StarCraft II"\\"Support"\SC2Switcher.exe --listen 127.0.0.1 --port %s"'%self.port
-            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap.SC2Map'
+            self.map_path = os.getcwd()+'/../../resource/Maps/GorasMap_GG.SC2Map'
 
         else:
             logger.error("Sorry, we cannot start on your OS.")
@@ -277,11 +277,11 @@ class Core(object):
                                 ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
                                 ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
                                 ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                                ['check mineral 1', {'target': 'minerals', 'amount': 100}, 'Query'],
+                                ['check mineral 1', {'target': 'minerals', 'amount': 9000}, 'Query'],
                                 # ['check mineral 2', {'target': 'minerals', 'amount': 20}, 'Query'],
                             ]
                          },
-                         ['build_pylon', {'target': 'point', 'pos_x': 39, 'pos_y': 29 }, 'General'],
+                         ['build_pylon', {'target': 'point', 'pos_x': 39, 'pos_y': 50 }, 'General'],
                      ]
                      }
 
@@ -295,6 +295,7 @@ class Core(object):
                                       'build_pylon': { 'is' : 'Ready'},
                                       'check mineral 1' : { 'is' : 'Ready'},
                                       #'check mineral 2' : { 'is' : 'Ready'}
+
                                     }
 
     '''
@@ -327,7 +328,7 @@ class Core(object):
             json_string=json.dumps(data)
             self.broadcast(json_string)
 
-            if minerals>=500: # End option <- Should be delete
+            if minerals>=10500: # End option <- Should be delete
 
                 # Should be delete! Cause when the goal is achieved, the agent destroy itself.
                 for probe in self.threads_agents:

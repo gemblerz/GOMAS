@@ -133,7 +133,7 @@ class Agent(threading.Thread):
     def destroy(self):
         # Need to broadcast "I am destroying"
         msg = "{} destroy".format(self.spawn_id)
-        self.comm_agents.send(msg)
+        self.comm_agents.send(msg, who='core')
         # Close communications
         self.deinit_comm_env()
         self.deinit_comm_agents()
