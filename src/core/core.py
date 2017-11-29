@@ -178,7 +178,6 @@ class Core(object):
         t = self.comm_sc2.send(observation=observation)
 
         for unit in t.observation.observation.raw_data.units:
-
             if unit.unit_type == 84: # Probe tag
 
                 # Already exists
@@ -201,8 +200,8 @@ class Core(object):
 
                     self.threads_agents[-1].spawn(unit.tag, 84,
                                         initial_knowledge = self.initial_knowledge,
-                                        initial_goals = [create_goal_set(self.goal)]
-                                    )
+                                        initial_goals = [create_goal_set(self.goal)],
+                                        )
 
                     self.threads_agents[-1].start()
                     self.spawned_agent+=1

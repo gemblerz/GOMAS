@@ -81,10 +81,6 @@ class Agent(threading.Thread):
         # Store initial goals
         self._load_goals(initial_goals)
 
-        # Initialize communications
-        self.init_comm_env()
-        self.init_comm_agents()
-
         # Give it a life
         self.alive = True
 
@@ -358,7 +354,10 @@ class Agent(threading.Thread):
         Main logic runs here (i.e., reasoning)
     '''
     def run(self):
-        time.sleep(5)
+        # Initialize communications
+        self.init_comm_env()
+        self.init_comm_agents()
+
         while self.alive:
             # For debugging
             logger.info('%s %d is ticking' % (self.name, self.spawn_id))
