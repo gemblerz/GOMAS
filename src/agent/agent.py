@@ -303,7 +303,8 @@ class Agent(threading.Thread):
                                     break
 
                             if amImin:
-                                pinglist.append(self.spawn_id)
+                                if int(self.spawn_id) not in pinglist:
+                                    pinglist.append(self.spawn_id)
                                 self.knowledge[task.__name__].update({'ping' : pinglist})
 
                                 action = self._has_action_for_task(task)
