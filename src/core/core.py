@@ -6,6 +6,7 @@
 
 import logging
 import threading
+import argparse
 import os
 import time
 import sys
@@ -47,7 +48,7 @@ class Core(object):
             logger.error("Sorry, we cannot start on your OS.")
 
         # Communicator between the core and agents.
-        self.comm_agents = Communicator(core=True)
+        self.comm_agents = Communicator(topic='core')
 
         # Set the Proxy and Agents Threads.
         self.thread_proxy = threading.Thread(target=proxy)
@@ -63,16 +64,17 @@ class Core(object):
         self.dict_nexus = {}
         self.next_pylon_pos=(27,33)
 
-    def init(self):
+    def init(self, launch_sc2=True):
 
-        # execute SC2 client.
-        try:
-            os.system(self.launcher_path)
+        if launch_sc2:
+            #execute SC2 client.
+            try:
+                os.system(self.launcher_path)
 
-            time.sleep(5) # need time to connect after launch app.
+                time.sleep(5) # need time to connect after launch app.
 
-        except:
-            logger.error("Failed to open sc2.")
+            except:
+                logger.error("Failed to open sc2.")
 
         #connection between core and sc2_client using sc2 protobuf.
         self.comm_sc2.open()
@@ -359,9 +361,14 @@ class Core(object):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--launch', action='store_true', help='Launch sc2 instance')
+
+    args = parser.parse_args()
+
     core = Core()
     logger.info('Core initializing...')
-    core.init()
+    core.init(launch_sc2=args.launch)
     logger.info('Core running...')
     core.run()
     logger.info('Core deinitializing...')
