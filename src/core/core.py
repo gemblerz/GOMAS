@@ -83,6 +83,9 @@ class Core(object):
         self.comm_agents.close()
         self.comm_sc2.close()
 
+    def log(self, message):
+        self.comm_agents.log(message, 'core')
+
     '''
         Collection of Requests to SC2 client.
         
@@ -142,6 +145,7 @@ class Core(object):
             #print(self.comm_sc2.send(step=sc_pb.RequestStep(count=1)))
 
             logger.info('Game is Started.')
+            self.log('Simulation started!')
         except Exception as ex:
             logger.error('While starting a new game: %s'%str(ex))
 

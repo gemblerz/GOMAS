@@ -16,14 +16,14 @@ import zmq
 import time
 import logging
 
-FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
+FORMAT = '%(asctime)s %(module)s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
 
 # Broker's addresses
-proxy_addr_in = 'ipc://127.0.0.1:5555'
-proxy_addr_out = 'ipc://127.0.0.1:5556'
+proxy_addr_in = 'tcp://127.0.0.1:5555'
+proxy_addr_out = 'tcp://127.0.0.1:5556'
 
 class Communicator(object):
     def __init__(self,topic='broadcasting'):

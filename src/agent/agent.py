@@ -202,7 +202,8 @@ class Agent(threading.Thread):
         # Update task state
         self.knowledge[task.__name__].update({'is': 'Active'})
 
-        logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
+        # logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
+        self.log('%s %s is performing %s' % (self.name, self.spawn_id, action))
         if action.__name__ == 'move':
             req=action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
@@ -223,7 +224,7 @@ class Agent(threading.Thread):
         if target in self.knowledge:
             current_amount = self.knowledge[target]['gathered']
             if int(current_amount) >= int(amount):
-                print("성취됨!!!!!!!!!!!!!")
+                # print("성취됨!!!!!!!!!!!!!")
                 #knowledgebase update
                 self.knowledge[task_name].update({'is': 'Done'})
                 self.state.__init__()
@@ -232,11 +233,14 @@ class Agent(threading.Thread):
         Delivering information to other agents
     '''
     def tell(self, statement):
-        logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
+        #logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
+        self.log('%d is telling "%s" to the agents' % (self.spawn_id, statement))
         #msg = str(self.spawn_id) + " is " + self.state.state
-        print(">> {} is telling : {}".format(self.spawn_id, statement))
+        #print(">> {} is telling : {}".format(self.spawn_id, statement))
         self.comm_agents.send(statement, broadcast=True)
 
+    def log(self, message):
+        self.comm_agents.log(message, str(self.spawn_id))
 
     '''
         Query to other agents
@@ -341,7 +345,7 @@ class Agent(threading.Thread):
         # check task
         for task in goal.tasks:
             if task.__name__ in knowledge:
-                print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
+                #print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
                 if knowledge[task.__name__]['is'] == 'Done':
                     knowledge[task.__name__]['ping'] = []
                 task.state = knowledge[task.__name__]['is']
@@ -361,10 +365,10 @@ class Agent(threading.Thread):
         while self.alive:
             # For debugging
             logger.info('%s %d is ticking' % (self.name, self.spawn_id))
-            print()
+            # print()
 
-            for k in self.knowledge:
-                print(k)
+            # for k in self.knowledge:
+            #     print(k)
 
 
             # Check if something to answer
@@ -379,7 +383,7 @@ class Agent(threading.Thread):
             self.perceive()
             self.perceive()
 
-            self.comm_agents.log(json.dumps(self.knowledge), str(self.spawn_id))
+            self.log(json.dumps(self.knowledge))
 
             #check knowledge and update the goal tree
             """
@@ -404,13 +408,13 @@ class Agent(threading.Thread):
             #check every goal whether now achieved.
             for goal in self.goals:
                 if goal.can_be_achieved(): #check the goal state
-                    print('뭐 좀 찍어볼까?????')
+                    # print('뭐 좀 찍어볼까?????')
                     self.knowledge[goal.name].update({'is' : 'achieved'})
-                    print(self.knowledge[goal.name]['is'])
+                    # print(self.knowledge[goal.name]['is'])
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
-            print(self.spawn_id, "다음은!!! ", selected_action, selected_task)
+            # print(self.spawn_id, "다음은!!! ", selected_action, selected_task)
             # Perform the action
             if selected_action is not None:
                 if not self.act(selected_action, selected_task):
@@ -423,9 +427,9 @@ class Agent(threading.Thread):
                     self.knowledge[selected_task.__name__].update({'is' : 'Done'})
 
             else:
-                print('다 됐다!!!!!!!!!!!!!!!!!!!')
+                # print('다 됐다!!!!!!!!!!!!!!!!!!!')
                 if self.goals[0].goal_state == 'achieved':
-                    print('여기 들어옴?? ???????')
+                    # print('여기 들어옴?? ???????')
                     for act in self.actions:
                         if act.__name__ == 'move':
                             req=act.perform(self.spawn_id)
