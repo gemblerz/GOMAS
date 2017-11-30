@@ -263,6 +263,7 @@ class Core(object):
             if unit.unit_type == 341:  # Mineral tag
                 list_minerals.append(unit.tag)
 
+        """
         self.goal = {'goal': 'I have two Pylon',
                      'trigger': [],
                      'satisfy': [
@@ -305,7 +306,57 @@ class Core(object):
                      ]
 
                      }
+        """
 
+        self.goal = {'goal': 'I have GG Pylon',
+                     'trigger': [],
+                     'satisfy': [
+                         ('type2', 'i', 'have', ['100 minerals'])
+                     ],
+                     'precedent': [],
+                     'require': [
+                         {'goal': 'gather 400 minerals',
+                          'require': [
+                              ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              # target: unit
+                              ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['check mineral 1', {'target': 'minerals', 'amount': 400}, 'Query'],
+                          ]
+                         },
+                         {'goal': 'I have pylon 1',
+                          'require': [
+                              ['build_pylon 1', {'target': 'point', 'pos_x': 39, 'pos_y': 29}, 'General'],
+                              ['build_pylon 2', {'target': 'point', 'pos_x': 39, 'pos_y': 27}, 'General'],
+                          ]
+                          },
+                         {'goal': 'I have pylon 2',
+                          'require': [
+                              ['build_pylon 3', {'target': 'point', 'pos_x': 39, 'pos_y': 25}, 'General'],
+                              ['build_pylon 4', {'target': 'point', 'pos_x': 39, 'pos_y': 23}, 'General'],
+                          ]
+                          },
+                     ]
+                     }
+
+    def set_init_kn(self):
+        self.initial_knowledge = {self.goal['goal']: {'is': 'Not Assigned'},
+                                  'gather 400 minerals': {'is': 'Not Assigned'},
+                                  'I have pylon 1': {'is': 'Not Assigned'},
+                                  'I have pylon 2': {'is': 'Not Assigned'},
+                                  'gather 1': {'is': 'Ready'},
+                                  'gather 2': {'is': 'Ready'},
+                                  'gather 3': {'is': 'Ready'},
+                                  'gather 4': {'is': 'Ready'},
+                                  'build_pylon 1': {'is': 'Ready'},
+                                  'build_pylon 2': {'is': 'Ready'},
+                                  'build_pylon 3': {'is': 'Ready'},
+                                  'build_pylon 4': {'is': 'Ready'},
+                                  'check mineral 1': {'is': 'Ready'},
+                                  }
+
+    """
     def set_init_kn(self):
         self.initial_knowledge = {self.goal['goal']: {'is': 'Not Assigned'},
                                   'gather 100 minerals 1': {'is': 'Not Assigned'},
@@ -325,6 +376,7 @@ class Core(object):
                                   'check mineral 1': {'is': 'Ready'},
                                   'check mineral 2': {'is': 'Ready'},
                                   }
+    """
 
     '''
         The Main Part of Core.
@@ -357,7 +409,7 @@ class Core(object):
             json_string = json.dumps(data)
             self.broadcast(json_string)
 
-            if minerals >= 500:  # End option <- Should be delete
+            if minerals >= 1000:  # End option <- Should be delete
 
                 # Should be delete! Cause when the goal is achieved, the agent destroy itself.
                 for probe in self.threads_agents:
