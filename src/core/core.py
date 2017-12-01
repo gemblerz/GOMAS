@@ -234,6 +234,7 @@ class Core(object):
         food_used = t.observation.observation.player_common.food_used
         print('Minerals: ', minerals)
         print('Population: %d/%d' % (food_used, food_cap))
+        print('Pylons: ', num_pylon)
         return (minerals, food_cap, food_used, num_pylon)
 
     '''
