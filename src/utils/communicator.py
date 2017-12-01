@@ -16,7 +16,7 @@ import zmq
 import time
 import logging
 
-FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
+FORMAT = '%(asctime)s %(module)s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
@@ -26,16 +26,13 @@ proxy_addr_in = 'ipc://127.0.0.1:5555'
 proxy_addr_out = 'ipc://127.0.0.1:5556'
 
 class Communicator(object):
-    def __init__(self,core=False):
-        self.core=core
+    def __init__(self,topic='broadcasting'):
         self.context = zmq.Context.instance()
 
         # connect subscriber to broker's XPUB socket
         self.subscriber = self.context.socket(zmq.SUB)
-        if self.core is True:
-            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'core')
-        else:
-            self.subscriber.setsockopt(zmq.SUBSCRIBE, b'broadcasting')
+        
+        self.subscriber.setsockopt(zmq.SUBSCRIBE, topic.encode())
 
         self.subscriber.connect(proxy_addr_out)
 
@@ -43,7 +40,7 @@ class Communicator(object):
         self.publisher = self.context.socket(zmq.PUB)
         self.publisher.connect(proxy_addr_in)
 
-        time.sleep(1.5)
+        # time.sleep(0.5)
 
     def read(self):
         message = ''
@@ -58,12 +55,15 @@ class Communicator(object):
 
     def send(self, message, broadcast=False, who=''):
 
-        if broadcast is True:
+        if broadcast is True: # broadcast to all agents, must be include logging module.
             self.publisher.send_string("%s %s"%('broadcasting',message))
-        elif who != '':
+        elif who != '': # Unicast to special agent, usually use to request action to core.
             self.publisher.send_string("%s %s"%(who,message))
         else:
             logging.error("Doesn't set the target to send msg!")
+
+    def log(self, message, send_from):
+        self.publisher.send_string('%s %s' % ('logging', send_from + ':' + message))
 
     def close(self):
         self.publisher.close()

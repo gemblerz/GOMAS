@@ -6,6 +6,7 @@
 
 import logging
 import threading
+import argparse
 import os
 import time
 import sys
@@ -37,18 +38,18 @@ class Core(object):
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher\
                                   --listen 127.0.0.1\
                                   --port %s" % self.port
-            self.map_path = os.getcwd() + '/../../resource/Maps/GorasMap.SC2Map'
+            self.map_path = os.getcwd() + '/../../resource/Maps/GorasMap_10000.SC2Map'
 
         elif sys.platform == "win32":  # Windows
 
             self.launcher_path = 'C:\\"Program Files (x86)"\\"StarCraft II"\\"Support"\SC2Switcher.exe --listen 127.0.0.1 --port %s"' % self.port
-            self.map_path = os.getcwd() + '/../../resource/Maps/GorasMap.SC2Map'
+            self.map_path = os.getcwd() + '/../../resource/Maps/GorasMap_10000.SC2Map'
 
         else:
             logger.error("Sorry, we cannot start on your OS.")
 
         # Communicator between the core and agents.
-        self.comm_agents = Communicator(core=True)
+        self.comm_agents = Communicator(topic='core')
 
         # Set the Proxy and Agents Threads.
         self.thread_proxy = threading.Thread(target=proxy)
@@ -58,21 +59,22 @@ class Core(object):
         self.spawned_agent = 0
 
         # Set the dictionary to save the information from SC2 client.
+        # Not Used Yet
         self.dict_probe = {}
         self.dict_mineral = {}
         self.dict_nexus = {}
         self.next_pylon_pos = (27, 33)
 
-    def init(self):
+    def init(self, launch_sc2=True):
 
-        # execute SC2 client.
-        try:
-            os.system(self.launcher_path)
+        if launch_sc2:
+            #execute SC2 client.
+            try:
+                os.system(self.launcher_path)
+                time.sleep(5) # need time to connect after launch app.
 
-            time.sleep(5)  # need time to connect after launch app.
-
-        except:
-            logger.error("Failed to open sc2.")
+            except:
+                logger.error("Failed to open sc2.")
 
         # connection between core and sc2_client using sc2 protobuf.
         self.comm_sc2.open()
@@ -80,6 +82,9 @@ class Core(object):
     def deinit(self):
         self.comm_agents.close()
         self.comm_sc2.close()
+
+    def log(self, message):
+        self.comm_agents.log(message, 'core')
 
     '''
         Collection of Requests to SC2 client.
@@ -141,6 +146,7 @@ class Core(object):
             # print(self.comm_sc2.send(step=sc_pb.RequestStep(count=1)))
 
             logger.info('Game is Started.')
+            self.log('Simulation started!')
         except Exception as ex:
             logger.error('While starting a new game: %s' % str(ex))
 
@@ -177,9 +183,7 @@ class Core(object):
         t = self.comm_sc2.send(observation=observation)
 
         for unit in t.observation.observation.raw_data.units:
-
-            if unit.unit_type == 84:  # Probe tag
-
+            if unit.unit_type == 84: # Probe tag
                 # Already exists
                 if unit.tag in self.dict_probe:
                     self.dict_probe[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
@@ -199,10 +203,9 @@ class Core(object):
                     # send_knowledge.update({''})
 
                     self.threads_agents[-1].spawn(unit.tag, 84,
-                                                  initial_knowledge=self.initial_knowledge,
-                                                  initial_goals=[create_goal_set(self.goal)]
-                                                  )
-
+                                        initial_knowledge = self.initial_knowledge,
+                                        initial_goals = [create_goal_set(self.goal)],
+                                        )
                     self.threads_agents[-1].start()
                     self.spawned_agent += 1
 
@@ -240,6 +243,11 @@ class Core(object):
                     Usually use 'broadcast' to 'agents' from 'core' to send the status of player in SC2.
             - perceive_request
                     To get requests from agents, such as to move probe, to gather minerals.
+            - set_goal
+                    Set the goal tree to simulate. The goal is also consisted of dictionary.
+            - set_init_kn
+                    Set the initial knowledge base. It is needed when the agents has spawned newly.
+
     '''
 
     def _start_proxy(self):
@@ -399,28 +407,31 @@ class Core(object):
             data = {}
             data['minerals'] = {}
             data['minerals']['gathered'] = str(minerals)
-            data['minerals']['are'] = list(self.dict_mineral.items())
-            data['food'] = {}
-            data['food']['has'] = str(food_cap)
-            data['food']['used'] = str(food_used)
-            # data['probes']={'are':self.dict_probe.items()}
-            # data['nexus']={'are':self.dict_nexus.items()}
+            #data['minerals']['are']=list(self.dict_mineral.items())
+            #data['food']={}
+            #data['food']['has'] = str(food_cap)
+            #data['food']['used'] = str(food_used)
+            #data['probes']={'are':self.dict_probe.items()}
+            #data['nexus']={'are':self.dict_nexus.items()}
 
             json_string = json.dumps(data)
             self.broadcast(json_string)
 
-            if minerals >= 1000:  # End option <- Should be delete
+            # Check the End condition
+            probes_status=False
+            for probe in self.threads_agents:
+                if probe.isAlive(): # Remain the alive probe. Core must run.
+                    probes_status=True
+                    break
 
-                # Should be delete! Cause when the goal is achieved, the agent destroy itself.
-                for probe in self.threads_agents:
-                    probe.destroy()
-
+            # No alive Agents. Exit the program.
+            if probes_status is False:
                 self._leave_game()
                 self._quit_sc2()
                 break
 
-            # Get Requests from agents.
 
+            # Get Requests from agents.
             for i in range(len(self.threads_agents)):
                 req = self.perceive_request()
                 if req.startswith('core'):
@@ -439,9 +450,14 @@ class Core(object):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--launch', action='store_true', help='Launch sc2 instance')
+
+    args = parser.parse_args()
+
     core = Core()
     logger.info('Core initializing...')
-    core.init()
+    core.init(launch_sc2=args.launch)
     logger.info('Core running...')
     core.run()
     logger.info('Core deinitializing...')
