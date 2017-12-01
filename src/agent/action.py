@@ -19,11 +19,17 @@ def get_basic_actions():
     code = '''
 self.tell(words)
     '''
-    query = '''
-self.query(task_name, target, amount)
+    mineral_query = '''
+self.mineral_query(task_name, target, amount)
     '''
+
+    built_query = '''
+    self.built_query(task_name, target, amount)
+        '''
+
 #    actions.append(Action(action_name='say', actual_code=code, require={'words': 'string'}))
-    actions.append(Action(action_name='check', actual_code=query, require={'target': 'string', 'amount': 'int'}))
+    actions.append(Action(action_name='check', actual_code=mineral_query, require={'target': 'string', 'amount': 'int'}))
+    actions.append(Action(action_name='built', actual_code=built_query, require={'target': 'string', 'built': 'int'}))
     return actions
 
 

@@ -219,14 +219,16 @@ class Agent(threading.Thread):
             req = action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
         elif action.__name__ == 'check':
-            self.query(task.__name__, task.arguments['target'], task.arguments['amount'])
+            self.mineral_query(task.__name__, task.arguments['target'], task.arguments['amount'])
             # action.perform_query()
+        elif action.__name__ == 'built':
+            self.built_query(task.__name__, task.arguments['target'], task.arguments['built'])
             return False
         else:
             print('act function --> else ERROR!!!!!!')
         return True
 
-    def query(self, task_name, target, amount):
+    def mineral_query(self, task_name, target, amount):
         # find knowledgebase
 
         if target in self.knowledge:
@@ -234,6 +236,14 @@ class Agent(threading.Thread):
             if int(current_amount) >= int(amount):
                 print("성취됨!!!!!!!!!!!!!")
                 # knowledgebase update
+                self.knowledge[task_name].update({'is': 'Done'})
+                self.state.__init__()
+
+    def built_query(self, task_name, target, built):
+        if target in self.knowledge:
+            current_built = self.knowledge[target]['built']
+            if int(current_built) >= int(built):
+                print("성취됨!!!!!!!!!!!!")
                 self.knowledge[task_name].update({'is': 'Done'})
                 self.state.__init__()
 
@@ -300,10 +310,14 @@ class Agent(threading.Thread):
         for goal in current_goal:
             # Method name is dirty
             leaf_goal, tasks = goal.get_available_goal_and_tasks()
+
+            """
             # When the Query task is Done, the agent's mentalstate is Idle
             for task in tasks:
                 if task.type == 'Query' and self.knowledge[task.__name__]['is'] == 'Done':
                     self.state.__init__()
+            """
+
             if len(tasks) != 0:
                 if leaf_goal.goal_state != 'achieved':
                     leaf_goal.goal_state = 'assigned'
@@ -413,6 +427,9 @@ class Agent(threading.Thread):
             self.perceive()
             self.perceive()
             self.perceive()
+
+            # check task state and change the agent's mentalstate
+
 
             # check knowledge and update the goal tree
             """

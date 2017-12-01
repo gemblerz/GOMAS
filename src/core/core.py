@@ -175,6 +175,7 @@ class Core(object):
     def _req_playerdata(self):
         observation = sc_pb.RequestObservation()
         t = self.comm_sc2.send(observation=observation)
+        num_pylon = 0
 
         for unit in t.observation.observation.raw_data.units:
 
@@ -215,6 +216,9 @@ class Core(object):
                     # new pylon
                     self.dict_mineral[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
 
+            if unit.unit_type == 60:
+                num_pylon += 1
+
             if unit.unit_type == 59:
                 # Already exists
                 if unit.tag in self.dict_mineral:
@@ -228,7 +232,8 @@ class Core(object):
         food_used = t.observation.observation.player_common.food_used
         print('Minerals: ', minerals)
         print('Population: %d/%d' % (food_used, food_cap))
-        return (minerals, food_cap, food_used)
+        print('Pylons: ', num_pylon)
+        return (minerals, food_cap, food_used, num_pylon)
 
     '''
         Connection methods to broadast and receive msg.
@@ -263,6 +268,63 @@ class Core(object):
             if unit.unit_type == 341:  # Mineral tag
                 list_minerals.append(unit.tag)
 
+        self.goal = {'goal': 'I have GG Pylon',
+                     'trigger': [],
+                     'satisfy': [
+                         ('type2', 'i', 'have', ['100 minerals'])
+                     ],
+                     'precedent': [],
+                     'require': [
+                         {'goal': 'I have pylon 1',
+                          'require': [
+                              ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              # target: unit
+                              ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['build_pylon 1', {'target': 'point', 'pos_x': 39, 'pos_y': 29}, 'General'],
+                              ['check mineral 1', {'target': 'minerals', 'amount': 100}, 'Query'],
+                              ['built pylon 1', {'target': 'pylons', 'built': 2}, 'Query'],
+                              {'goal': 'I have pylon 2',
+                               'require': [
+                                   ['gather 5', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   # target: unit
+                                   ['gather 6', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   ['gather 7', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   ['gather 8', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   ['build_pylon 2', {'target': 'point', 'pos_x': 39, 'pos_y': 27}, 'General'],
+                                   ['check mineral 2', {'target': 'minerals', 'amount': 150}, 'Query'],
+                                   ['built pylon 2', {'target': 'pylons', 'built': 1}, 'Query'],
+                               ]
+                              },
+                            ],
+                          },
+                        ]
+                     }
+
+
+
+    def set_init_kn(self):
+        self.initial_knowledge = {self.goal['goal']: {'is': 'Not Assigned'},
+                                      'I have pylon 1': {'is': 'Not Assigned'},
+                                      'I have pylon 2': {'is': 'Not Assigned'},
+                                      'gather 1': {'is': 'Ready'},
+                                      'gather 2': {'is': 'Ready'},
+                                      'gather 3': {'is': 'Ready'},
+                                      'gather 4': {'is': 'Ready'},
+                                      'gather 5': {'is': 'Ready'},
+                                      'gather 6': {'is': 'Ready'},
+                                      'gather 7': {'is': 'Ready'},
+                                      'gather 8': {'is': 'Ready'},
+                                      'build_pylon 1': {'is': 'Ready'},
+                                      'build_pylon 2': {'is': 'Ready'},
+                                      'check mineral 1': {'is': 'Ready'},
+                                      'check mineral 2': {'is': 'Ready'},
+                                      'built pylon 1': {'is': 'Ready'},
+                                      'built pylon 2': {'is': 'Ready'},
+                                 }
+
+        """
         self.goal = {'goal': 'I have two Pylon',
                      'trigger': [],
                      'satisfy': [
@@ -325,6 +387,7 @@ class Core(object):
                                   'check mineral 1': {'is': 'Ready'},
                                   'check mineral 2': {'is': 'Ready'},
                                   }
+    """
 
     '''
         The Main Part of Core.
@@ -341,11 +404,13 @@ class Core(object):
 
             logger.info('%s is ticking' % ('core'))
 
-            minerals, food_cap, food_used = self._req_playerdata()
+            minerals, food_cap, food_used, num_pylon = self._req_playerdata()
 
             # Tell game data to everyone.
             data = {}
             data['minerals'] = {}
+            data['pylons'] = {}
+            data['pylons']['built'] = str(num_pylon)
             data['minerals']['gathered'] = str(minerals)
             data['minerals']['are'] = list(self.dict_mineral.items())
             data['food'] = {}
@@ -357,7 +422,7 @@ class Core(object):
             json_string = json.dumps(data)
             self.broadcast(json_string)
 
-            if minerals >= 500:  # End option <- Should be delete
+            if minerals >= 1000:  # End option <- Should be delete
 
                 # Should be delete! Cause when the goal is achieved, the agent destroy itself.
                 for probe in self.threads_agents:
