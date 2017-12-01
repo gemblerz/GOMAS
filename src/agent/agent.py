@@ -221,6 +221,7 @@ class Agent(threading.Thread):
         elif action.__name__ == 'check':
             self.mineral_query(task.__name__, task.arguments['target'], task.arguments['amount'])
             # action.perform_query()
+            return False
         elif action.__name__ == 'built':
             self.built_query(task.__name__, task.arguments['target'], task.arguments['built'])
             return False
@@ -311,12 +312,12 @@ class Agent(threading.Thread):
             # Method name is dirty
             leaf_goal, tasks = goal.get_available_goal_and_tasks()
 
-            """
+
             # When the Query task is Done, the agent's mentalstate is Idle
             for task in tasks:
                 if task.type == 'Query' and self.knowledge[task.__name__]['is'] == 'Done':
                     self.state.__init__()
-            """
+
 
             if len(tasks) != 0:
                 if leaf_goal.goal_state != 'achieved':
