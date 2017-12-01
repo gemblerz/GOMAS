@@ -181,6 +181,7 @@ class Core(object):
     def _req_playerdata(self):
         observation = sc_pb.RequestObservation()
         t = self.comm_sc2.send(observation=observation)
+        num_pylon = 0
 
         for unit in t.observation.observation.raw_data.units:
             if unit.unit_type == 84: # Probe tag
@@ -225,13 +226,15 @@ class Core(object):
                 else:
                     # new nexus
                     self.dict_nexus[unit.tag] = (unit.pos.x, unit.pos.y, unit.pos.z)
+            if unit.unit_type == 60:
+                num_pylon += 1
 
         minerals = t.observation.observation.player_common.minerals
         food_cap = t.observation.observation.player_common.food_cap
         food_used = t.observation.observation.player_common.food_used
         print('Minerals: ', minerals)
         print('Population: %d/%d' % (food_used, food_cap))
-        return (minerals, food_cap, food_used)
+        return (minerals, food_cap, food_used, num_pylon)
 
     '''
         Connection methods to broadast and receive msg.
@@ -401,12 +404,14 @@ class Core(object):
 
             logger.info('%s is ticking' % ('core'))
 
-            minerals, food_cap, food_used = self._req_playerdata()
+            minerals, food_cap, food_used, num_pylon = self._req_playerdata()
 
             # Tell game data to everyone.
             data = {}
             data['minerals'] = {}
+            data['pylons'] = {}
             data['minerals']['gathered'] = str(minerals)
+            data['pylons']['built'] = str(num_pylon)
             #data['minerals']['are']=list(self.dict_mineral.items())
             #data['food']={}
             #data['food']['has'] = str(food_cap)
