@@ -23,6 +23,8 @@ from utils.communicator import Communicator, proxy
 
 from google.protobuf import json_format
 
+from utils.jsonencoder import PythonObjectEncoder
+
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
@@ -269,7 +271,7 @@ class Core(object):
                 list_minerals.append(unit.tag)
 
 
-        self.goal = {'goal': 'I have Three Pylon',
+        self.goal = {'goal': 'I have GG Pylon',
                      'trigger': [],
                      'satisfy': [
                          ('type2', 'i', 'have', ['100 minerals'])
@@ -282,6 +284,51 @@ class Core(object):
                                'require': [
                                    {'goal': 'I have pylon 3',
                                     'require': [
+                                        {'goal': 'I have pylon 4',
+                                         'require': [
+                                             {'goal': 'I have pylon 5',
+                                              'require': [
+                                                  {'goal': 'gather 100 minerals 5',
+                                                   'require': [
+                                                       ['gather 17', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       # target: unit
+                                                       ['gather 18', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       ['gather 19', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       ['gather 20', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       ['check mineral 5', {'target': 'minerals', 'amount': 100},
+                                                        'Query'],
+                                                   ]
+                                                   },
+                                                  ['build_pylon 5', {'target': 'point', 'pos_x': 35, 'pos_y': 21},
+                                                   'General'],
+                                                  ['built pylon 5', {'target': 'pylons', 'built': 1}, 'Query'],
+                                              ]
+                                              },
+                                             {'goal': 'gather 100 minerals 4',
+                                              'require': [
+                                                  ['gather 13', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  # target: unit
+                                                  ['gather 14', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  ['gather 15', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  ['gather 16', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  ['check mineral 4', {'target': 'minerals', 'amount': 100}, 'Query'],
+                                              ]
+                                              },
+                                             ['build_pylon 4', {'target': 'point', 'pos_x': 39, 'pos_y': 23},
+                                              'General'],
+                                             ['built pylon 4', {'target': 'pylons', 'built': 2}, 'Query'],
+
+                                         ]
+
+                                         },
                                         {'goal': 'gather 100 minerals 3',
                                          'require': [
                                              ['gather 9', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
@@ -293,7 +340,8 @@ class Core(object):
                                          ]
                                          },
                                         ['build_pylon 3', {'target': 'point', 'pos_x': 39, 'pos_y': 25}, 'General'],
-                                        ['built pylon 3', {'target': 'pylons', 'built': 1}, 'Query'],
+                                        ['built pylon 3', {'target': 'pylons', 'built': 3}, 'Query'],
+
                                     ]
                                     },
                                    {'goal': 'gather 100 minerals 2',
@@ -307,7 +355,7 @@ class Core(object):
                                     ]
                                     },
                                    ['build_pylon 2', {'target': 'point', 'pos_x': 39, 'pos_y': 27}, 'General'],
-                                   ['built pylon 2', {'target': 'pylons', 'built': 2}, 'Query'],
+                                   ['built pylon 2', {'target': 'pylons', 'built': 4}, 'Query'],
                                ]
                                },
                               ]
@@ -323,7 +371,7 @@ class Core(object):
                           ]
                           },
                          ['build_pylon 1', {'target': 'point', 'pos_x': 39, 'pos_y': 29}, 'General'],
-                         ['built pylon 1', {'target': 'pylons', 'built': 3}, 'Query'],
+                         ['built pylon 1', {'target': 'pylons', 'built': 5}, 'Query'],
                      ]
                      }
 
@@ -332,9 +380,13 @@ class Core(object):
                                       'gather 100 minerals 1': {'is': 'Not Assigned'},
                                       'gather 100 minerals 2': {'is': 'Not Assigned'},
                                       'gather 100 minerals 3': {'is': 'Not Assigend'},
+                                      'gather 100 minerals 4': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 5': {'is': 'Not Assigend'},
                                       'I have pylon 1': {'is': 'Not Assigned'},
                                       'I have pylon 2': {'is': 'Not Assigned'},
                                       'I have pylon 3': {'is': 'Not Assgiend'},
+                                      'I have pylon 4': {'is': 'Not Assigned'},
+                                      'I have pylon 5': {'is': 'Not Assgiend'},
                                       'gather 1': {'is': 'Ready'},
                                       'gather 2': {'is': 'Ready'},
                                       'gather 3': {'is': 'Ready'},
@@ -347,15 +399,29 @@ class Core(object):
                                       'gather 10': {'is': 'Ready'},
                                       'gather 11': {'is': 'Ready'},
                                       'gather 12': {'is': 'Ready'},
+                                      'gather 13': {'is': 'Ready'},
+                                      'gather 14': {'is': 'Ready'},
+                                      'gather 15': {'is': 'Ready'},
+                                      'gather 16': {'is': 'Ready'},
+                                      'gather 17': {'is': 'Ready'},
+                                      'gather 18': {'is': 'Ready'},
+                                      'gather 19': {'is': 'Ready'},
+                                      'gather 20': {'is': 'Ready'},
                                       'build_pylon 1': {'is': 'Ready'},
                                       'build_pylon 2': {'is': 'Ready'},
                                       'build_pylon 3': {'is': 'Ready'},
+                                      'build_pylon 4': {'is': 'Ready'},
+                                      'build_pylon 5': {'is': 'Ready'},
                                       'built pylon 1': {'is': 'Ready'},
                                       'built pylon 2': {'is': 'Ready'},
                                       'built pylon 3': {'is': 'Ready'},
+                                      'built pylon 4': {'is': 'Ready'},
+                                      'built pylon 5': {'is': 'Ready'},
                                       'check mineral 1': {'is': 'Ready'},
                                       'check mineral 2': {'is': 'Ready'},
                                       'check mineral 3': {'is': 'Ready'},
+                                      'check mineral 4': {'is': 'Ready'},
+                                      'check mineral 5': {'is': 'Ready'},
                                       }
 
         """
@@ -453,7 +519,7 @@ class Core(object):
             # data['probes']={'are':self.dict_probe.items()}
             # data['nexus']={'are':self.dict_nexus.items()}
 
-            json_string = json.dumps(data)
+            json_string = json.dumps(data, cls=PythonObjectEncoder)
             self.broadcast(json_string)
 
             if minerals >= 1000:  # End option <- Should be delete

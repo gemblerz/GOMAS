@@ -138,6 +138,18 @@ class Goal(object):
             if task.state != 'Done':
                 print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
+
+        # #check goal is Active(every task's state is not Ready state)
+        # is_active = True
+        # for task in self.tasks:
+        #     if task.state == 'Ready':
+        #         is_active = False
+        #
+        # if is_active is True:
+        #     self.goal_state = 'active'
+        #     return False
+
+
         self.goal_state = 'achieved'
         print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
         return True

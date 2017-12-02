@@ -23,6 +23,8 @@ from action import Action, get_basic_actions
 from knowledge_base import Knowledge
 from goal import Goal, create_goal_set
 
+from utils.jsonencoder import PythonObjectEncoder, as_python_object
+
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
@@ -78,6 +80,7 @@ class Agent(threading.Thread):
 
         # Set initial statements in knowledge
         self._load_knowledge(initial_knowledge)
+        print(self.knowledge)
 
         # Store initial goals
         self._load_goals(initial_goals)
@@ -152,7 +155,7 @@ class Agent(threading.Thread):
         message = self.comm_agents.read()
         if message.startswith('broadcasting'):
             message = message[13:]
-            self.knowledge.update(json.loads(message))
+            self.knowledge.update(json.loads(message, object_hook=as_python_object))
 
     """
     def json_to_knowledge(self, message):
@@ -218,6 +221,12 @@ class Agent(threading.Thread):
         elif action.__name__ == 'build_pylon':
             req = action.perform(self.spawn_id)
             self.comm_agents.send(req, who='core')
+            # do gather after build_pylon
+            # time.sleep(self.discrete_time_step)
+            # for act in self.actions:
+            #     if act.__name__ == 'gather':
+            #         req = act.perform(self.spawn_id)
+
         elif action.__name__ == 'check':
             self.mineral_query(task.__name__, task.arguments['target'], task.arguments['amount'])
             # action.perform_query()
@@ -352,7 +361,7 @@ class Agent(threading.Thread):
 
                             if amImin:
                                 if int(self.spawn_id) not in pinglist:
-                                    pinglist.append(self.spawn_id)
+                                    pinglist.add(self.spawn_id)
                                 self.knowledge[task.__name__].update({'ping': pinglist})
 
                                 action = self._has_action_for_task(task)
@@ -507,7 +516,7 @@ class Agent(threading.Thread):
                 pass
 
             # TODO for Tony : Please Broadcast knowledge...
-            self.tell(json.dumps(self.knowledge))
+            self.tell(json.dumps(self.knowledge, cls=PythonObjectEncoder))
 
             time.sleep(self.discrete_time_step)
 
