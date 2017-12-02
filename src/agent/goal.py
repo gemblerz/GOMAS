@@ -130,13 +130,13 @@ class Goal(object):
         #check subgoals
         for subgoal in self.subgoals:
             if not subgoal.can_be_achieved():
-                print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
+                #print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
 
         #check task
         for task in self.tasks:
             if task.state != 'Done':
-                print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
+                #print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
 
         # #check goal is Active(every task's state is not Ready state)
@@ -151,7 +151,7 @@ class Goal(object):
 
 
         self.goal_state = 'achieved'
-        print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
+        #print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
         return True
 
 

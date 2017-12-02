@@ -80,7 +80,7 @@ class Agent(threading.Thread):
 
         # Set initial statements in knowledge
         self._load_knowledge(initial_knowledge)
-        print(self.knowledge)
+        #print(self.knowledge)
 
         # Store initial goals
         self._load_goals(initial_goals)
@@ -235,7 +235,8 @@ class Agent(threading.Thread):
             self.built_query(task.__name__, task.arguments['target'], task.arguments['built'])
             return False
         else:
-            print('act function --> else ERROR!!!!!!')
+            pass
+            #print('act function --> else ERROR!!!!!!')
         return True
 
     def mineral_query(self, task_name, target, amount):
@@ -244,7 +245,7 @@ class Agent(threading.Thread):
         if target in self.knowledge:
             current_amount = self.knowledge[target]['gathered']
             if int(current_amount) >= int(amount):
-                print("성취됨!!!!!!!!!!!!!")
+                #print("성취됨!!!!!!!!!!!!!")
                 # knowledgebase update
                 self.knowledge[task_name].update({'is': 'Done'})
                 self.state.__init__()
@@ -253,7 +254,7 @@ class Agent(threading.Thread):
         if target in self.knowledge:
             current_built = self.knowledge[target]['built']
             if int(current_built) >= int(built):
-                print("성취됨!!!!!!!!!!!!")
+                #print("성취됨!!!!!!!!!!!!")
                 self.knowledge[task_name].update({'is': 'Done'})
                 self.state.__init__()
 
@@ -262,9 +263,9 @@ class Agent(threading.Thread):
     '''
 
     def tell(self, statement):
-        logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
+        #logger.info('%d is telling "%s" to the agents' % (self.spawn_id, statement))
         # msg = str(self.spawn_id) + " is " + self.state.state
-        print(">> {} is telling : {}".format(self.spawn_id, statement))
+        #print(">> {} is telling : {}".format(self.spawn_id, statement))
         self.comm_agents.send(statement, broadcast=True)
 
     '''
@@ -292,16 +293,16 @@ class Agent(threading.Thread):
     def check_goal_achieved(self, goal):
         if goal is not None:
             if goal.can_be_achieved():
-                print('뭐 좀 찍어볼까?????')
+                #print('뭐 좀 찍어볼까?????')
                 self.knowledge[goal.name].update({'is': 'achieved'})
-                print(goal.name)
-                print(self.knowledge[goal.name]['is'])
+                #print(goal.name)
+                #print(self.knowledge[goal.name]['is'])
             for subgoal in goal.subgoals:
                 if subgoal.can_be_achieved():
-                    print('뭐 좀 찍어볼까?????')
+                    #print('뭐 좀 찍어볼까?????')
                     self.knowledge[subgoal.name].update({'is': 'achieved'})
-                    print(subgoal.name)
-                    print(self.knowledge[subgoal.name]['is'])
+                    #print(subgoal.name)
+                    #print(self.knowledge[subgoal.name]['is'])
                     self.check_goal_achieved(subgoal)
         return None
 
@@ -311,7 +312,7 @@ class Agent(threading.Thread):
 
     def next_action(self, current_goal, current_knowledge, mentalstate):
         list_actions = []
-        print("####NEXT_ACTION: CURRENT GOAL's length: %s" % (len(current_goal)))
+        #print("####NEXT_ACTION: CURRENT GOAL's length: %s" % (len(current_goal)))
         if len(current_goal) == 0:
             # TODO: is an action always triggered by a goal?
             return None, None
@@ -402,7 +403,7 @@ class Agent(threading.Thread):
         # check task
         for task in goal.tasks:
             if task.__name__ in knowledge:
-                print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
+                #print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
                 if knowledge[task.__name__]['is'] == 'Done':
                     knowledge[task.__name__]['ping'] = []
                 task.state = knowledge[task.__name__]['is']
@@ -421,10 +422,10 @@ class Agent(threading.Thread):
         while self.alive:
             # For debugging
             logger.info('%s %d is ticking' % (self.name, self.spawn_id))
-            print()
+            #print()
 
-            for k in self.knowledge:
-                print(k)
+            #for k in self.knowledge:
+            #    print(k)
 
             # Check if something to answer
             # query = self.check_being_asked():
@@ -482,7 +483,7 @@ class Agent(threading.Thread):
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
-            print(self.spawn_id, "다음은!!! ", selected_action, selected_task)
+            #print(self.spawn_id, "다음은!!! ", selected_action, selected_task)
             # Perform the action
             if selected_action is not None:
                 if not self.act(selected_action, selected_task):
@@ -502,9 +503,9 @@ class Agent(threading.Thread):
                     # self.state.__init__()
 
             else:
-                print('다 됐다!!!!!!!!!!!!!!!!!!!')
+                #print('다 됐다!!!!!!!!!!!!!!!!!!!')
                 if self.goals[0].goal_state == 'achieved':
-                    print('여기 들어옴?? ???????')
+                    #print('여기 들어옴?? ???????')
                     """
                     for act in self.actions:
                         if act.__name__ == 'move':

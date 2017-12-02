@@ -772,7 +772,7 @@ class Core(object):
                                                    'General'],
                                                   ['gather 52', {'target': 'unit', 'unit_tag': list_minerals[0]},
                                                    'General'],
-                                                  ['check mineral 18', {'target': 'minerals', 'amount': 100}, 'Query'],
+                                                  ['check mineral 13', {'target': 'minerals', 'amount': 100}, 'Query'],
                                               ]
                                               },
                                              ['build_pylon 13', {'target': 'point', 'pos_x': 35, 'pos_y': 38},
