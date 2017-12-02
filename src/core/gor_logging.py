@@ -10,6 +10,9 @@ from threading import Thread
 
 import datetime
 import time
+import json
+
+from utils.jsonencoder import as_python_object
 
 datetime_format = '%Y-%m-%d %H:%M:%S.%f'
 
@@ -19,7 +22,7 @@ class GorasLogging(Thread):
         self.logs = []
         self.listener = Communicator(topic='logging')
         self.is_alive = True
-        self.log_file = open('/tmp/latest_simulation.txt', 'w')
+        self.log_file = open('./latest_simulation.txt', 'w')
 
     def close(self):
         self.log_file.close()
@@ -32,6 +35,7 @@ class GorasLogging(Thread):
             if message == '':
                 time.sleep(0.1)
                 continue
+            #message = json.loads(message,object_hook=as_python_object)
             log_message = '{}\t{}\t\r\n'.format(datetime.datetime.now().isoformat(timespec='microseconds'), message)
             # Where to store?
             self.log_file.write(log_message)

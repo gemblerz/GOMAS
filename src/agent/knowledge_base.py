@@ -29,7 +29,7 @@ class Knowledge(dict):
                     # for nested dict
                     for verb in other[subject]:
                         if verb == 'ping': # if the verb is ping, just extend ping list.
-                            self[subject][verb].extend(other[subject][verb])
+                            self[subject][verb] = set(self[subject][verb]) | set(other[subject][verb])
                         else:
                             self[subject][verb] = other[subject][verb]
                 else:
@@ -39,7 +39,7 @@ class Knowledge(dict):
                 # for nested dict
                 for verb in kwargs[subject]:
                     if verb == 'ping': # if the verb is ping, just extend ping list.
-                        self[subject][verb].extend(kwargs[subject][verb])
+                        self[subject][verb] = set(self[subject][verb]) | set(kwargs[subject][verb])
                     else:
                         self[subject][verb] = kwargs[subject][verb]
             else:

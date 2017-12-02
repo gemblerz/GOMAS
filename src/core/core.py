@@ -24,6 +24,8 @@ from utils.communicator import Communicator, proxy
 
 from google.protobuf import json_format
 
+from utils.jsonencoder import PythonObjectEncoder
+
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
@@ -327,26 +329,41 @@ class Core(object):
                      ],
                      'precedent': [],
                      'require': [
-                         {'goal': 'gather 400 minerals',
-                          'require': [
-                              ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                              # target: unit
-                              ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                              ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                              ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                              ['check mineral 1', {'target': 'minerals', 'amount': 400}, 'Query'],
-                          ]
-                         },
                          {'goal': 'I have pylon 1',
                           'require': [
+                              {
+                                  'goal': 'gather 100 minerals 1',
+                                  'require': [
+                                      ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      # target: unit
+                                      ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      ['check mineral 1', {'target': 'minerals', 'amount': 200}, 'Query']
+                                  ]
+                              },
                               ['build_pylon 1', {'target': 'point', 'pos_x': 39, 'pos_y': 29}, 'General'],
                               ['build_pylon 2', {'target': 'point', 'pos_x': 39, 'pos_y': 27}, 'General'],
+                              ['check pylon 1',{'target': 'pylons','amount': 2},'Query']
                           ]
                           },
                          {'goal': 'I have pylon 2',
                           'require': [
-                              ['build_pylon 3', {'target': 'point', 'pos_x': 39, 'pos_y': 25}, 'General'],
-                              ['build_pylon 4', {'target': 'point', 'pos_x': 39, 'pos_y': 23}, 'General'],
+                              {
+                                  'goal': 'gather 100 minerals 2',
+                                  'require': [
+                                      ['gather 5', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      # target: unit
+                                      ['gather 6', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      ['gather 7', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      ['gather 8', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                      ['check mineral 2', {'target': 'minerals', 'amount': 200}, 'Query']
+                                  ]
+                              },
+                              ['build_pylon 3', {'target': 'point', 'pos_x': 39, 'pos_y': 35}, 'General'],
+                              ['build_pylon 4', {'target': 'point', 'pos_x': 39, 'pos_y': 33}, 'General'],
+                              ['check pylon 2', {'target': 'pylons', 'amount': 4}, 'Query']
+
                           ]
                           },
                      ]
@@ -354,18 +371,26 @@ class Core(object):
 
     def set_init_kn(self):
         self.initial_knowledge = {self.goal['goal']: {'is': 'Not Assigned'},
-                                  'gather 400 minerals': {'is': 'Not Assigned'},
                                   'I have pylon 1': {'is': 'Not Assigned'},
-                                  'I have pylon 2': {'is': 'Not Assigned'},
+                                  'gather 100 minerals 1': {'is': 'Not Assigned'},
                                   'gather 1': {'is': 'Ready'},
                                   'gather 2': {'is': 'Ready'},
                                   'gather 3': {'is': 'Ready'},
                                   'gather 4': {'is': 'Ready'},
+                                  'check mineral 1': {'is': 'Ready'},
                                   'build_pylon 1': {'is': 'Ready'},
                                   'build_pylon 2': {'is': 'Ready'},
+                                  'check pylon 1': {'is': 'Ready'},
+                                  'I have pylon 2': {'is': 'Not Assigned'},
+                                  'gather 100 minerals 2': {'is': 'Not Assigned'},
+                                  'gather 5': {'is': 'Ready'},
+                                  'gather 6': {'is': 'Ready'},
+                                  'gather 7': {'is': 'Ready'},
+                                  'gather 8': {'is': 'Ready'},
+                                  'check mineral 2': {'is': 'Ready'},
                                   'build_pylon 3': {'is': 'Ready'},
                                   'build_pylon 4': {'is': 'Ready'},
-                                  'check mineral 1': {'is': 'Ready'},
+                                  'check pylon 2': {'is': 'Ready'},
                                   }
 
     """
@@ -413,14 +438,8 @@ class Core(object):
             data['pylons'] = {}
             data['minerals']['gathered'] = str(minerals)
             data['pylons']['built'] = str(num_pylon)
-            #data['minerals']['are']=list(self.dict_mineral.items())
-            #data['food']={}
-            #data['food']['has'] = str(food_cap)
-            #data['food']['used'] = str(food_used)
-            #data['probes']={'are':self.dict_probe.items()}
-            #data['nexus']={'are':self.dict_nexus.items()}
 
-            json_string = json.dumps(data)
+            json_string = json.dumps(data,cls=PythonObjectEncoder)
             self.broadcast(json_string)
 
             # Check the End condition
@@ -463,7 +482,7 @@ if __name__ == '__main__':
 
     core = Core()
     logger.info('Core initializing...')
-    core.init(launch_sc2=args.launch)
+    core.init()
     logger.info('Core running...')
     core.run()
     logger.info('Core deinitializing...')

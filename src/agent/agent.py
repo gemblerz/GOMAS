@@ -23,6 +23,8 @@ from action import Action, get_basic_actions
 from knowledge_base import Knowledge
 from goal import Goal, create_goal_set
 
+from utils.jsonencoder import PythonObjectEncoder,as_python_object
+
 FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
@@ -78,6 +80,7 @@ class Agent(threading.Thread):
 
         # Set initial statements in knowledge
         self._load_knowledge(initial_knowledge)
+        print(self.knowledge)
 
         # Store initial goals
         self._load_goals(initial_goals)
@@ -152,7 +155,7 @@ class Agent(threading.Thread):
         message = self.comm_agents.read()
         if message.startswith('broadcasting'):
             message = message[13:]
-            self.knowledge.update(json.loads(message))
+            self.knowledge.update(json.loads(message,object_hook=as_python_object))
 
     """
     def json_to_knowledge(self, message):
@@ -165,38 +168,6 @@ class Agent(threading.Thread):
         nexus = json_msg["nexus"] #nexus dictionary
         self.knowledge.append(Knowledge('type1', 'has_minerals', has_minerals))
     """
-
-    """
-        Change msg(str) to Knowledge
-    """
-
-    def msg_to_knowledge(self, message):
-        splited_msg = message.split()
-        tuple_msg = tuple(splited_msg)
-        if splited_msg is not None:
-            if len(splited_msg) == 2:
-                self.knowledge.append(Knowledge('type1', tuple_msg[0], [tuple_msg[1]]))
-            elif len(splited_msg) == 3:
-                self.knowledge.append(Knowledge('type2', tuple_msg[0], tuple_msg[1], [tuple_msg[2]]))
-            else:
-                pass
-        else:
-            pass
-
-    """
-        Change tuple to Knowledge
-    """
-
-    def tuple_to_knowledge(self, tuple_msg):
-        if tuple_msg is not None:
-            if len(tuple_msg) == 3:
-                self.knowledge.append(Knowledge(tuple_msg[0], tuple_msg[1], tuple_msg[2]))
-            elif len(tuple_msg) == 4:
-                self.knowledge.append(Knowledge(tuple_msg[0], tuple_msg[1], tuple_msg[2], tuple_msg[3]))
-            else:
-                pass
-        else:
-            pass
 
     '''
         Information / actions going to simulator
@@ -231,10 +202,20 @@ class Agent(threading.Thread):
         # find knowledgebase
 
         if target in self.knowledge:
-            current_amount = self.knowledge[target]['gathered']
+            if target == 'minerals':
+                current_amount = self.knowledge[target]['gathered']
+                if int(current_amount) >= int(amount):
+                    # print("성취됨!!!!!!!!!!!!!")
+                    #knowledgebase update
+                    self.knowledge[task_name].update({'is': 'Done'})
+                    self.state.__init__()
+            elif target == 'pylons':
+                current_amount = self.knowledge[target]['built']
+            else: return
+
             if int(current_amount) >= int(amount):
                 # print("성취됨!!!!!!!!!!!!!")
-                #knowledgebase update
+                # knowledgebase update
                 self.knowledge[task_name].update({'is': 'Done'})
                 self.state.__init__()
 
@@ -319,8 +300,8 @@ class Agent(threading.Thread):
                     if task.type == 'General':
                         if task.state == 'Ready':
                             task.state = 'Ping'
-                            pinglist = []
-                            pinglist.append(self.spawn_id)
+                            pinglist = set()
+                            pinglist.add(self.spawn_id)
                             self.knowledge[task.__name__].update({'is': 'Ping'})
                             self.knowledge[task.__name__].update({'ping': pinglist})
 
@@ -341,7 +322,7 @@ class Agent(threading.Thread):
 
                             if amImin:
                                 if int(self.spawn_id) not in pinglist:
-                                    pinglist.append(self.spawn_id)
+                                    pinglist.add(self.spawn_id)
                                 self.knowledge[task.__name__].update({'ping' : pinglist})
 
                                 action = self._has_action_for_task(task)
@@ -405,6 +386,7 @@ class Agent(threading.Thread):
 
             # for k in self.knowledge:
             #     print(k)
+            print(self.knowledge)
 
             # Check if something to answer
             # query = self.check_being_asked():
@@ -417,7 +399,7 @@ class Agent(threading.Thread):
             self.perceive()
             self.perceive()
             self.perceive()
-            self.log(json.dumps(self.knowledge))
+            self.log(json.dumps(self.knowledge,cls=PythonObjectEncoder))
 
             #check knowledge and update the goal tree=
             """
@@ -478,7 +460,7 @@ class Agent(threading.Thread):
                 pass
 
             # TODO for Tony : Please Broadcast knowledge...
-            self.tell(json.dumps(self.knowledge))
+            self.tell(json.dumps(self.knowledge,cls=PythonObjectEncoder))
 
             time.sleep(self.discrete_time_step)
 
