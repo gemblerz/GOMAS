@@ -135,7 +135,7 @@ class Goal(object):
 
         #check task
         for task in self.tasks:
-            if task.state != 'Done':
+            if task.state != 3:
                 print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
         self.goal_state = 'achieved'
@@ -185,7 +185,7 @@ class Task(object):
         self.__name__ = task_name
         self.arguments = arguments
         self.arguments['task_name'] = task_name
-        self.state = 'Ready'
+        self.state = 0
         self.type = type
 
     def __repr__(self):

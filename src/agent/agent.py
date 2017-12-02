@@ -29,6 +29,8 @@ FORMAT = '%(asctime)s %(module)s %(levelname)s %(lineno)d %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
+task_state={'Ready':0,'Ping':1,'Active':2,'Done':3}
+goal_state={'Not Assigned':0,'assigned':1,'active':2,'achieved':3}
 
 class MentalState(object):
     '''
@@ -48,7 +50,7 @@ class Agent(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
-        self.discrete_time_step = 1  # sec
+        self.discrete_time_step = 0.5  # sec
         self.alive = False
         self.state = MentalState()
 
@@ -157,18 +159,6 @@ class Agent(threading.Thread):
             message = message[13:]
             self.knowledge.update(json.loads(message,object_hook=as_python_object))
 
-    """
-    def json_to_knowledge(self, message):
-        json_msg = json.loads(message)
-        has_minerals = json_msg["has_minerals"]
-        food_cap = json_msg["food_cap"]
-        food_used = json_msg["food_used"]
-        probe = json_msg["probe"]  #probe dictionary
-        minerals = json_msg["minerals"] #mineral dictionary
-        nexus = json_msg["nexus"] #nexus dictionary
-        self.knowledge.append(Knowledge('type1', 'has_minerals', has_minerals))
-    """
-
     '''
         Information / actions going to simulator
     '''
@@ -177,26 +167,28 @@ class Agent(threading.Thread):
         self.state.change_state()
 
         # Update task state
-        self.knowledge[task.__name__].update({'is': 'Active'})
+        if self.knowledge[task.__name__]['is'] == task_state['Active'] - 1:
+            self.knowledge[task.__name__].update({'is': task_state['Active']})
 
-        # logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
-        self.log('%s %s is performing %s' % (self.name, self.spawn_id, action))
-        if action.__name__ == 'move':
-            req = action.perform(self.spawn_id)
-            self.comm_agents.send(req, who='core')
-        elif action.__name__ == 'gather':
-            req = action.perform(self.spawn_id)
-            self.comm_agents.send(req, who='core')
-        elif action.__name__ == 'build_pylon':
-            req = action.perform(self.spawn_id)
-            self.comm_agents.send(req, who='core')
-        elif action.__name__ == 'check':
-            self.query(task.__name__, task.arguments['target'], task.arguments['amount'])
-            # action.perform_query()
-            return False
-        else:
-            print('act function --> else ERROR!!!!!!')
-        return True
+            # logger.info('%s %s is performing %s' % (self.name, self.spawn_id, action))
+            self.log('%s %s is performing %s' % (self.name, self.spawn_id, action))
+            if action.__name__ == 'move':
+                req = action.perform(self.spawn_id)
+                self.comm_agents.send(req, who='core')
+            elif action.__name__ == 'gather':
+                req = action.perform(self.spawn_id)
+                self.comm_agents.send(req, who='core')
+            elif action.__name__ == 'build_pylon':
+                req = action.perform(self.spawn_id)
+                self.comm_agents.send(req, who='core')
+            elif action.__name__ == 'check':
+                self.query(task.__name__, task.arguments['target'], task.arguments['amount'])
+                # action.perform_query()
+                return False
+            else:
+                print('act function --> else ERROR!!!!!!')
+            return True
+        return False
 
     def query(self, task_name, target, amount):
         # find knowledgebase
@@ -207,7 +199,7 @@ class Agent(threading.Thread):
                 if int(current_amount) >= int(amount):
                     # print("성취됨!!!!!!!!!!!!!")
                     #knowledgebase update
-                    self.knowledge[task_name].update({'is': 'Done'})
+                    self.knowledge[task_name].update({'is': task_state['Done']})
                     self.state.__init__()
             elif target == 'pylons':
                 current_amount = self.knowledge[target]['built']
@@ -216,7 +208,7 @@ class Agent(threading.Thread):
             if int(current_amount) >= int(amount):
                 # print("성취됨!!!!!!!!!!!!!")
                 # knowledgebase update
-                self.knowledge[task_name].update({'is': 'Done'})
+                self.knowledge[task_name].update({'is': task_state['Done']})
                 self.state.__init__()
 
     '''
@@ -287,7 +279,7 @@ class Agent(threading.Thread):
             leaf_goal, tasks = goal.get_available_goal_and_tasks()
             # When the Query task is Done, the agent's mentalstate is Idle
             for task in tasks:
-                if task.type == 'Query' and self.knowledge[task.__name__]['is'] == 'Done':
+                if task.type == 'Query' and self.knowledge[task.__name__]['is'] == task_state['Done']:
                     self.state.__init__()
             if len(tasks) != 0:
                 if leaf_goal.goal_state != 'achieved':
@@ -298,11 +290,11 @@ class Agent(threading.Thread):
                 if mentalstate == 'idle':
                     # ping
                     if task.type == 'General':
-                        if task.state == 'Ready':
-                            task.state = 'Ping'
+                        if task.state == task_state['Ready']:
+                            task.state = task_state['Ping']
                             pinglist = set()
                             pinglist.add(self.spawn_id)
-                            self.knowledge[task.__name__].update({'is': 'Ping'})
+                            self.knowledge[task.__name__].update({'is': task_state['Ping']})
                             self.knowledge[task.__name__].update({'ping': pinglist})
 
                             '''
@@ -311,7 +303,7 @@ class Agent(threading.Thread):
                             '''
                             break
 
-                        elif task.state == 'Ping':
+                        elif task.state == task_state['Ping']:
                             pinglist = self.knowledge[task.__name__]['ping']
 
                             amImin = True
@@ -332,11 +324,11 @@ class Agent(threading.Thread):
                             else:
                                 return None, None
 
-                        elif task.state == 'Active':
+                        elif task.state == task_state['Active']:
                             return None, None
 
                 elif mentalstate == 'working':
-                    if task.type == 'Query' and (task.state == 'Ready' or task.state == 'Active'):
+                    if task.type == 'Query' and (task.state == task_state['Ready'] or task.state == task_state['Active']):
                         # Check whether query task is done
                         action = self._has_action_for_task(task)
                         if action is not None:
@@ -364,7 +356,7 @@ class Agent(threading.Thread):
         for task in goal.tasks:
             if task.__name__ in knowledge:
                 #print("!!", self.spawn_id, task.__name__, task.state, "-->", knowledge[task.__name__]['is'])
-                if knowledge[task.__name__]['is'] == 'Done':
+                if knowledge[task.__name__]['is'] == task_state['Done']:
                     knowledge[task.__name__]['ping'] = []
                 task.state = knowledge[task.__name__]['is']
 
@@ -386,7 +378,8 @@ class Agent(threading.Thread):
 
             # for k in self.knowledge:
             #     print(k)
-            print(self.knowledge)
+            #print(self.knowledge)
+            print(self.state)
 
             # Check if something to answer
             # query = self.check_being_asked():
@@ -440,9 +433,9 @@ class Agent(threading.Thread):
                     pass
                 else:
                     # General task come here!
-                    selected_task.state = 'Done'
-                    self.knowledge[selected_task.__name__]['ping'] = []
-                    self.knowledge[selected_task.__name__].update({'is': 'Done'})
+                    selected_task.state = task_state['Done']
+                    self.knowledge[selected_task.__name__]['ping'] = self.spawn_id
+                    self.knowledge[selected_task.__name__].update({'is': task_state['Done']})
                     # Have to change agent's state to idle after finishing the task
                     # self.state.__init__()
 
@@ -463,54 +456,3 @@ class Agent(threading.Thread):
             self.tell(json.dumps(self.knowledge,cls=PythonObjectEncoder))
 
             time.sleep(self.discrete_time_step)
-
-
-'''
-    For testing
-'''
-if __name__ == '__main__':
-    """
-    goal = {'goal': 'introduce myself',
-            'require': [
-                ['say', {'words': 'hello'}],
-                {'goal': 'say hello',
-                 'require': [
-                     ['say', {'words': 'myname'}],
-                     ['say', {'words': 'hehe'}],
-                     {'goal': 'say hajime',
-                      'require': [
-                          ['say', {'words': 'hajime'}]
-                      ]}
-                 ]
-                 }
-            ]
-            }
-
-    goal = {'goal': 'gather 100 minerals',
-            'trigger': [],
-            'satisfy': [
-                ('type2', 'i', 'have', ['100 minerals'])
-            ],
-            'precedent': [],
-            'require': [
-                ['move', {'target': 'point', 'pos_x': 10, 'pos_y': 10}],
-                ['gather', {'target': 'unit', 'unit_tag': 'list_mineral_tag[0]'}],
-            ]
-            }
-
-    probe = Agent()
-    probe.spawn(1,84,
-        initial_knowledge=[
-            ('type1', 'my_name', ['probe']),
-            ('type2', 'i', 'say', ['my_name']),
-            ],
-        initial_goals=[create_goal_set(goal)]
-        )
-    print('Agent is running...')
-    try:
-        probe.run()
-    except KeyboardInterrupt:
-        pass
-    probe.destroy()
-    print('The agent is terminated.')
-    """
