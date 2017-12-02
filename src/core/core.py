@@ -278,6 +278,8 @@ class Core(object):
                      ],
                      'precedent': [],
                      'require': [
+                         {'goal': 'I have G 1',
+                          'require': [
                          {'goal': 'I have pylon 1',
                           'require': [
                               {'goal': 'I have pylon 2',
@@ -527,10 +529,297 @@ class Core(object):
                          ['build_pylon 1', {'target': 'point', 'pos_x': 30, 'pos_y': 40}, 'General'],
                          ['built pylon 1', {'target': 'pylons', 'built': 10}, 'Query'],
                      ]
+                     },
+                         {'goal': 'I have G 2',
+                          'require': [
+                              {'goal': 'I have pylon 11',
+                               'require': [
+                                   {'goal': 'I have pylon 12',
+                                    'require': [
+                                        {'goal': 'I have pylon 13',
+                                         'require': [
+                                             {'goal': 'I have pylon 14',
+                                              'require': [
+                                                  {'goal': 'I have pylon 15',
+                                                   'require': [
+                                                       {'goal': 'I have pylon 16',
+                                                        'require': [
+                                                            {'goal': 'I have pylon 17',
+                                                             'require': [
+                                                                 {'goal': 'I have pylon 18',
+                                                                  'require': [
+                                                                      {'goal': 'I have pylon 19',
+                                                                       'require': [
+                                                                           {'goal': 'I have pylon 20',
+                                                                            'require': [
+                                                                                {'goal': 'gather 100 minerals 20',
+                                                                                 'require': [
+                                                                                     ['gather 77', {'target': 'unit',
+                                                                                                    'unit_tag':
+                                                                                                        list_minerals[
+                                                                                                            0]},
+                                                                                      'General'],
+                                                                                     # target: unit
+                                                                                     ['gather 78', {'target': 'unit',
+                                                                                                    'unit_tag':
+                                                                                                        list_minerals[
+                                                                                                            0]},
+                                                                                      'General'],
+                                                                                     ['gather 79', {'target': 'unit',
+                                                                                                    'unit_tag':
+                                                                                                        list_minerals[
+                                                                                                            0]},
+                                                                                      'General'],
+                                                                                     ['gather 80', {'target': 'unit',
+                                                                                                    'unit_tag':
+                                                                                                        list_minerals[
+                                                                                                            0]},
+                                                                                      'General'],
+                                                                                     ['check mineral 20',
+                                                                                      {'target': 'minerals',
+                                                                                       'amount': 100},
+                                                                                      'Query'],
+                                                                                 ]
+                                                                                 },
+                                                                                ['build_pylon 20',
+                                                                                 {'target': 'point', 'pos_x': 39,
+                                                                                  'pos_y': 36},
+                                                                                 'General'],
+                                                                                ['built pylon 11',
+                                                                                 {'target': 'pylons', 'built': 11},
+                                                                                 'Query'],
+
+                                                                            ]
+                                                                            },
+
+                                                                           {'goal': 'gather 100 minerals 19',
+                                                                            'require': [
+                                                                                ['gather 73', {'target': 'unit',
+                                                                                               'unit_tag':
+                                                                                                   list_minerals[0]},
+                                                                                 'General'],
+                                                                                # target: unit
+                                                                                ['gather 74', {'target': 'unit',
+                                                                                               'unit_tag':
+                                                                                                   list_minerals[0]},
+                                                                                 'General'],
+                                                                                ['gather 75', {'target': 'unit',
+                                                                                               'unit_tag':
+                                                                                                   list_minerals[0]},
+                                                                                 'General'],
+                                                                                ['gather 76', {'target': 'unit',
+                                                                                               'unit_tag':
+                                                                                                   list_minerals[0]},
+                                                                                 'General'],
+                                                                                ['check mineral 19',
+                                                                                 {'target': 'minerals', 'amount': 100},
+                                                                                 'Query'],
+                                                                            ]
+                                                                            },
+                                                                           ['build_pylon 19',
+                                                                            {'target': 'point', 'pos_x': 41,
+                                                                             'pos_y': 36},
+                                                                            'General'],
+                                                                           ['built pylon 19',
+                                                                            {'target': 'pylons', 'built': 12}, 'Query'],
+
+                                                                       ]
+                                                                       },
+                                                                      {'goal': 'gather 100 minerals 18',
+                                                                       'require': [
+                                                                           ['gather 69',
+                                                                            {'target': 'unit',
+                                                                             'unit_tag': list_minerals[0]},
+                                                                            'General'],
+                                                                           # target: unit
+                                                                           ['gather 70',
+                                                                            {'target': 'unit',
+                                                                             'unit_tag': list_minerals[0]},
+                                                                            'General'],
+                                                                           ['gather 71',
+                                                                            {'target': 'unit',
+                                                                             'unit_tag': list_minerals[0]},
+                                                                            'General'],
+                                                                           ['gather 72',
+                                                                            {'target': 'unit',
+                                                                             'unit_tag': list_minerals[0]},
+                                                                            'General'],
+                                                                           ['check mineral 18',
+                                                                            {'target': 'minerals', 'amount': 100},
+                                                                            'Query'],
+                                                                       ]
+                                                                       },
+                                                                      ['build_pylon 18',
+                                                                       {'target': 'point', 'pos_x': 41, 'pos_y': 34},
+                                                                       'General'],
+                                                                      ['built pylon 18',
+                                                                       {'target': 'pylons', 'built': 13},
+                                                                       'Query'],
+
+                                                                  ]
+                                                                  },
+                                                                 {'goal': 'gather 100 minerals 17',
+                                                                  'require': [
+                                                                      ['gather 65',
+                                                                       {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                       'General'],
+                                                                      # target: unit
+                                                                      ['gather 66',
+                                                                       {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                       'General'],
+                                                                      ['gather 67',
+                                                                       {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                       'General'],
+                                                                      ['gather 68',
+                                                                       {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                       'General'],
+                                                                      ['check mineral 17',
+                                                                       {'target': 'minerals', 'amount': 100},
+                                                                       'Query'],
+                                                                  ]
+                                                                  },
+                                                                 ['build_pylon 17',
+                                                                  {'target': 'point', 'pos_x': 39, 'pos_y': 32},
+                                                                  'General'],
+                                                                 ['built pylon 17', {'target': 'pylons', 'built': 14},
+                                                                  'Query'],
+
+                                                             ]
+                                                             },
+                                                            {'goal': 'gather 100 minerals 16',
+                                                             'require': [
+                                                                 ['gather 61',
+                                                                  {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                  'General'],
+                                                                 # target: unit
+                                                                 ['gather 62',
+                                                                  {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                  'General'],
+                                                                 ['gather 63',
+                                                                  {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                  'General'],
+                                                                 ['gather 64',
+                                                                  {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                                  'General'],
+                                                                 ['check mineral 16',
+                                                                  {'target': 'minerals', 'amount': 100},
+                                                                  'Query'],
+                                                             ]
+                                                             },
+                                                            ['build_pylon 16',
+                                                             {'target': 'point', 'pos_x': 37, 'pos_y': 32},
+                                                             'General'],
+                                                            ['built pylon 16', {'target': 'pylons', 'built': 15},
+                                                             'Query'],
+
+                                                        ]
+
+                                                        },
+                                                       {'goal': 'gather 100 minerals 15',
+                                                        'require': [
+                                                            ['gather 57',
+                                                             {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                             'General'],
+                                                            # target: unit
+                                                            ['gather 58',
+                                                             {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                             'General'],
+                                                            ['gather 59',
+                                                             {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                             'General'],
+                                                            ['gather 60',
+                                                             {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                             'General'],
+                                                            ['check mineral 15', {'target': 'minerals', 'amount': 100},
+                                                             'Query'],
+                                                        ]
+                                                        },
+                                                       ['build_pylon 15', {'target': 'point', 'pos_x': 35, 'pos_y': 34},
+                                                        'General'],
+                                                       ['built pylon 15', {'target': 'pylons', 'built': 16}, 'Query'],
+                                                   ]
+                                                   },
+                                                  {'goal': 'gather 100 minerals 14',
+                                                   'require': [
+                                                       ['gather 53', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       # target: unit
+                                                       ['gather 54', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       ['gather 55', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       ['gather 56', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                        'General'],
+                                                       ['check mineral 14', {'target': 'minerals', 'amount': 100},
+                                                        'Query'],
+                                                   ]
+                                                   },
+                                                  ['build_pylon 14', {'target': 'point', 'pos_x': 35, 'pos_y': 36},
+                                                   'General'],
+                                                  ['built pylon 14', {'target': 'pylons', 'built': 17}, 'Query'],
+
+                                              ]
+
+                                              },
+                                             {'goal': 'gather 100 minerals 13',
+                                              'require': [
+                                                  ['gather 49', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  # target: unit
+                                                  ['gather 50', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  ['gather 51', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  ['gather 52', {'target': 'unit', 'unit_tag': list_minerals[0]},
+                                                   'General'],
+                                                  ['check mineral 18', {'target': 'minerals', 'amount': 100}, 'Query'],
+                                              ]
+                                              },
+                                             ['build_pylon 13', {'target': 'point', 'pos_x': 35, 'pos_y': 38},
+                                              'General'],
+                                             ['built pylon 13', {'target': 'pylons', 'built': 18}, 'Query'],
+
+                                         ]
+                                         },
+                                        {'goal': 'gather 100 minerals 12',
+                                         'require': [
+                                             ['gather 45', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             # target: unit
+                                             ['gather 46', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             ['gather 47', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             ['gather 48', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             ['check mineral 12', {'target': 'minerals', 'amount': 100}, 'Query'],
+                                         ]
+                                         },
+                                        ['build_pylon 12', {'target': 'point', 'pos_x': 37, 'pos_y': 40}, 'General'],
+                                        ['built pylon 12', {'target': 'pylons', 'built': 19}, 'Query'],
+                                    ]
+                                    },
+                               ]
+                               },
+                              {'goal': 'gather 100 minerals 11',
+                               'require': [
+                                   ['gather 41', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   # target: unit
+                                   ['gather 42', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   ['gather 43', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   ['gather 44', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                   ['check mineral 11', {'target': 'minerals', 'amount': 100}, 'Query'],
+                               ]
+                               },
+                              ['build_pylon 11', {'target': 'point', 'pos_x': 39, 'pos_y': 40}, 'General'],
+                              ['built pylon 11', {'target': 'pylons', 'built': 20}, 'Query'],
+                          ]
+                          },
+
+                     ]
+
                      }
 
     def set_init_kn(self):
         self.initial_knowledge = {self.goal['goal']: {'is': 'Not Assigned'},
+                                      'I have G 1': {'is': 'Not Assigned'},
+                                      'I have G 2': {'is': 'Not Assigned'},
                                       'gather 100 minerals 1': {'is': 'Not Assigned'},
                                       'gather 100 minerals 2': {'is': 'Not Assigned'},
                                       'gather 100 minerals 3': {'is': 'Not Assigend'},
@@ -541,6 +830,16 @@ class Core(object):
                                       'gather 100 minerals 8': {'is': 'Not Assigend'},
                                       'gather 100 minerals 9': {'is': 'Not Assigned'},
                                       'gather 100 minerals 10': {'is': 'Not Assigend'},
+                                      'gather 100 minerals 11': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 12': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 13': {'is': 'Not Assigend'},
+                                      'gather 100 minerals 14': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 15': {'is': 'Not Assigend'},
+                                      'gather 100 minerals 16': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 17': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 18': {'is': 'Not Assigend'},
+                                      'gather 100 minerals 19': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 20': {'is': 'Not Assigend'},
                                       'I have pylon 1': {'is': 'Not Assigned'},
                                       'I have pylon 2': {'is': 'Not Assigned'},
                                       'I have pylon 3': {'is': 'Not Assgiend'},
@@ -551,6 +850,16 @@ class Core(object):
                                       'I have pylon 8': {'is': 'Not Assgiend'},
                                       'I have pylon 9': {'is': 'Not Assigned'},
                                       'I have pylon 10': {'is': 'Not Assgiend'},
+                                      'I have pylon 11': {'is': 'Not Assigned'},
+                                      'I have pylon 12': {'is': 'Not Assigned'},
+                                      'I have pylon 13': {'is': 'Not Assgiend'},
+                                      'I have pylon 14': {'is': 'Not Assigned'},
+                                      'I have pylon 15': {'is': 'Not Assgiend'},
+                                      'I have pylon 16': {'is': 'Not Assigned'},
+                                      'I have pylon 17': {'is': 'Not Assigned'},
+                                      'I have pylon 18': {'is': 'Not Assgiend'},
+                                      'I have pylon 19': {'is': 'Not Assigned'},
+                                      'I have pylon 20': {'is': 'Not Assgiend'},
                                       'gather 1': {'is': 'Ready'},
                                       'gather 2': {'is': 'Ready'},
                                       'gather 3': {'is': 'Ready'},
@@ -591,6 +900,46 @@ class Core(object):
                                       'gather 38': {'is': 'Ready'},
                                       'gather 39': {'is': 'Ready'},
                                       'gather 40': {'is': 'Ready'},
+                                      'gather 41': {'is': 'Ready'},
+                                      'gather 42': {'is': 'Ready'},
+                                      'gather 43': {'is': 'Ready'},
+                                      'gather 44': {'is': 'Ready'},
+                                      'gather 45': {'is': 'Ready'},
+                                      'gather 46': {'is': 'Ready'},
+                                      'gather 47': {'is': 'Ready'},
+                                      'gather 48': {'is': 'Ready'},
+                                      'gather 49': {'is': 'Ready'},
+                                      'gather 50': {'is': 'Ready'},
+                                      'gather 51': {'is': 'Ready'},
+                                      'gather 52': {'is': 'Ready'},
+                                      'gather 53': {'is': 'Ready'},
+                                      'gather 54': {'is': 'Ready'},
+                                      'gather 55': {'is': 'Ready'},
+                                      'gather 56': {'is': 'Ready'},
+                                      'gather 57': {'is': 'Ready'},
+                                      'gather 58': {'is': 'Ready'},
+                                      'gather 59': {'is': 'Ready'},
+                                      'gather 60': {'is': 'Ready'},
+                                      'gather 61': {'is': 'Ready'},
+                                      'gather 62': {'is': 'Ready'},
+                                      'gather 63': {'is': 'Ready'},
+                                      'gather 64': {'is': 'Ready'},
+                                      'gather 65': {'is': 'Ready'},
+                                      'gather 66': {'is': 'Ready'},
+                                      'gather 67': {'is': 'Ready'},
+                                      'gather 68': {'is': 'Ready'},
+                                      'gather 69': {'is': 'Ready'},
+                                      'gather 70': {'is': 'Ready'},
+                                      'gather 71': {'is': 'Ready'},
+                                      'gather 72': {'is': 'Ready'},
+                                      'gather 73': {'is': 'Ready'},
+                                      'gather 74': {'is': 'Ready'},
+                                      'gather 75': {'is': 'Ready'},
+                                      'gather 76': {'is': 'Ready'},
+                                      'gather 77': {'is': 'Ready'},
+                                      'gather 78': {'is': 'Ready'},
+                                      'gather 79': {'is': 'Ready'},
+                                      'gather 80': {'is': 'Ready'},
                                       'build_pylon 1': {'is': 'Ready'},
                                       'build_pylon 2': {'is': 'Ready'},
                                       'build_pylon 3': {'is': 'Ready'},
@@ -601,6 +950,16 @@ class Core(object):
                                       'build_pylon 8': {'is': 'Ready'},
                                       'build_pylon 9': {'is': 'Ready'},
                                       'build_pylon 10': {'is': 'Ready'},
+                                      'build_pylon 11': {'is': 'Ready'},
+                                      'build_pylon 12': {'is': 'Ready'},
+                                      'build_pylon 13': {'is': 'Ready'},
+                                      'build_pylon 14': {'is': 'Ready'},
+                                      'build_pylon 15': {'is': 'Ready'},
+                                      'build_pylon 16': {'is': 'Ready'},
+                                      'build_pylon 17': {'is': 'Ready'},
+                                      'build_pylon 18': {'is': 'Ready'},
+                                      'build_pylon 19': {'is': 'Ready'},
+                                      'build_pylon 20': {'is': 'Ready'},
                                       'built pylon 1': {'is': 'Ready'},
                                       'built pylon 2': {'is': 'Ready'},
                                       'built pylon 3': {'is': 'Ready'},
@@ -611,6 +970,16 @@ class Core(object):
                                       'built pylon 8': {'is': 'Ready'},
                                       'built pylon 9': {'is': 'Ready'},
                                       'built pylon 10': {'is': 'Ready'},
+                                      'built pylon 11': {'is': 'Ready'},
+                                      'built pylon 12': {'is': 'Ready'},
+                                      'built pylon 13': {'is': 'Ready'},
+                                      'built pylon 14': {'is': 'Ready'},
+                                      'built pylon 15': {'is': 'Ready'},
+                                      'built pylon 16': {'is': 'Ready'},
+                                      'built pylon 17': {'is': 'Ready'},
+                                      'built pylon 18': {'is': 'Ready'},
+                                      'built pylon 19': {'is': 'Ready'},
+                                      'built pylon 20': {'is': 'Ready'},
                                       'check mineral 1': {'is': 'Ready'},
                                       'check mineral 2': {'is': 'Ready'},
                                       'check mineral 3': {'is': 'Ready'},
@@ -621,6 +990,16 @@ class Core(object):
                                       'check mineral 8': {'is': 'Ready'},
                                       'check mineral 9': {'is': 'Ready'},
                                       'check mineral 10': {'is': 'Ready'},
+                                      'check mineral 11': {'is': 'Ready'},
+                                      'check mineral 12': {'is': 'Ready'},
+                                      'check mineral 13': {'is': 'Ready'},
+                                      'check mineral 14': {'is': 'Ready'},
+                                      'check mineral 15': {'is': 'Ready'},
+                                      'check mineral 16': {'is': 'Ready'},
+                                      'check mineral 17': {'is': 'Ready'},
+                                      'check mineral 18': {'is': 'Ready'},
+                                      'check mineral 19': {'is': 'Ready'},
+                                      'check mineral 20': {'is': 'Ready'},
                                       }
 
         """
