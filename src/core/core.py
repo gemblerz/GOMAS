@@ -269,7 +269,7 @@ class Core(object):
                 list_minerals.append(unit.tag)
 
 
-        self.goal = {'goal': 'I have two Pylon',
+        self.goal = {'goal': 'I have Three Pylon',
                      'trigger': [],
                      'satisfy': [
                          ('type2', 'i', 'have', ['100 minerals'])
@@ -278,20 +278,24 @@ class Core(object):
                      'require': [
                          {'goal': 'I have pylon 1',
                           'require': [
-                              {'goal': 'gather 200 minerals 1',
-                               'require': [
-                                   ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                                   # target: unit
-                                   ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                                   ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                                   ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
-                                   ['check mineral 1', {'target': 'minerals', 'amount': 200}, 'Query'],
-                               ]
-                               },
-                              ['build_pylon 1', {'target': 'point', 'pos_x': 39, 'pos_y': 29}, 'General'],
-                              ['built pylon 1', {'target': 'pylons', 'built': 2}, 'Query'],
                               {'goal': 'I have pylon 2',
                                'require': [
+                                   {'goal': 'I have pylon 3',
+                                    'require': [
+                                        {'goal': 'gather 100 minerals 3',
+                                         'require': [
+                                             ['gather 9', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             # target: unit
+                                             ['gather 10', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             ['gather 11', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             ['gather 12', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                                             ['check mineral 3', {'target': 'minerals', 'amount': 100}, 'Query'],
+                                         ]
+                                         },
+                                        ['build_pylon 3', {'target': 'point', 'pos_x': 39, 'pos_y': 25}, 'General'],
+                                        ['built pylon 3', {'target': 'pylons', 'built': 1}, 'Query'],
+                                    ]
+                                    },
                                    {'goal': 'gather 100 minerals 2',
                                     'require': [
                                         ['gather 5', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
@@ -303,20 +307,34 @@ class Core(object):
                                     ]
                                     },
                                    ['build_pylon 2', {'target': 'point', 'pos_x': 39, 'pos_y': 27}, 'General'],
-                                   ['built pylon 2', {'target': 'pylons', 'built': 1}, 'Query'],
+                                   ['built pylon 2', {'target': 'pylons', 'built': 2}, 'Query'],
                                ]
                                },
                               ]
-                          }
+                          },
+                         {'goal': 'gather 100 minerals 1',
+                          'require': [
+                              ['gather 1', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              # target: unit
+                              ['gather 2', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['gather 3', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['gather 4', {'target': 'unit', 'unit_tag': list_minerals[0]}, 'General'],
+                              ['check mineral 1', {'target': 'minerals', 'amount': 100}, 'Query'],
+                          ]
+                          },
+                         ['build_pylon 1', {'target': 'point', 'pos_x': 39, 'pos_y': 29}, 'General'],
+                         ['built pylon 1', {'target': 'pylons', 'built': 3}, 'Query'],
                      ]
                      }
 
     def set_init_kn(self):
         self.initial_knowledge = {self.goal['goal']: {'is': 'Not Assigned'},
-                                      'gather 200 minerals 1': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 1': {'is': 'Not Assigned'},
                                       'gather 100 minerals 2': {'is': 'Not Assigned'},
+                                      'gather 100 minerals 3': {'is': 'Not Assigend'},
                                       'I have pylon 1': {'is': 'Not Assigned'},
                                       'I have pylon 2': {'is': 'Not Assigned'},
+                                      'I have pylon 3': {'is': 'Not Assgiend'},
                                       'gather 1': {'is': 'Ready'},
                                       'gather 2': {'is': 'Ready'},
                                       'gather 3': {'is': 'Ready'},
@@ -325,12 +343,19 @@ class Core(object):
                                       'gather 6': {'is': 'Ready'},
                                       'gather 7': {'is': 'Ready'},
                                       'gather 8': {'is': 'Ready'},
+                                      'gather 9': {'is': 'Ready'},
+                                      'gather 10': {'is': 'Ready'},
+                                      'gather 11': {'is': 'Ready'},
+                                      'gather 12': {'is': 'Ready'},
                                       'build_pylon 1': {'is': 'Ready'},
                                       'build_pylon 2': {'is': 'Ready'},
+                                      'build_pylon 3': {'is': 'Ready'},
                                       'built pylon 1': {'is': 'Ready'},
                                       'built pylon 2': {'is': 'Ready'},
+                                      'built pylon 3': {'is': 'Ready'},
                                       'check mineral 1': {'is': 'Ready'},
                                       'check mineral 2': {'is': 'Ready'},
+                                      'check mineral 3': {'is': 'Ready'},
                                       }
 
         """

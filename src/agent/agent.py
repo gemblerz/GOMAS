@@ -482,6 +482,11 @@ class Agent(threading.Thread):
                 else:
                     # General task come here!
                     selected_task.state = 'Done'
+                    # if selected_task.__name__.startswith('built'):
+                    #     for act in self.actions:
+                    #         if act.__name__ == 'gather':
+                    #             req = act.perform(self.spawn_id)
+                    #             self.comm_agents.send(req, who='core')
                     self.knowledge[selected_task.__name__]['ping'] = []
                     self.knowledge[selected_task.__name__].update({'is': 'Done'})
                     # Have to change agent's state to idle after finishing the task
