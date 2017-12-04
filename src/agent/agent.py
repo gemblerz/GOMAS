@@ -340,8 +340,8 @@ class Agent(threading.Thread):
                     if task.type == 'General':
                         if task.state == 'Ready':
                             task.state = 'Ping'
-                            pinglist = []
-                            pinglist.append(self.spawn_id)
+                            pinglist = set()
+                            pinglist.add(self.spawn_id)
                             self.knowledge[task.__name__].update({'is': 'Ping'})
                             self.knowledge[task.__name__].update({'ping': pinglist})
 
