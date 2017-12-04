@@ -120,9 +120,32 @@ class Goal(object):
             return self, self.tasks
         else:
             for subgoal in self.subgoals:
-                if subgoal.goal_state != GOAL_STATE_ACHIEVED and subgoal.goal_state != GOAL_STATE_FAILED:
+                if subgoal.goal_state != GOAL_STATE_ACHIEVED and subgoal.goal_state != GOAL_STATE_FAILED and subgoal.goal_state != GOAL_STATE_ACTIVE:
                     return subgoal._get_leaf_goal_and_tasks()
             return self, self.tasks
+
+            # check the goal is active
+
+    def can_be_active(self):
+
+        # check subgoals
+        for subgoal in self.subgoals:
+            if not subgoal.can_be_active():
+                # print('>>', self.name, 'CAN NOT be active yet >>', self.goal_state)
+                return False
+
+        is_active = True
+        for task in self.tasks:
+            if task.state == 'Ready':
+                is_active = False
+                break
+
+        if is_active is False:
+            return False
+
+        self.goal_state = 'active'
+        # print('>>', self.name, 'CAN be active now >>', self.goal_state)
+        return True
 
     # receive the agent's knowledge to check end condition
     def can_be_achieved(self):
@@ -138,17 +161,6 @@ class Goal(object):
             if task.state != 'Done':
                 #print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
-
-        # #check goal is Active(every task's state is not Ready state)
-        # is_active = True
-        # for task in self.tasks:
-        #     if task.state == 'Ready':
-        #         is_active = False
-        #
-        # if is_active is True:
-        #     self.goal_state = 'active'
-        #     return False
-
 
         self.goal_state = 'achieved'
         #print('>>', self.name, 'CAN be achieved now >>', self.goal_state)

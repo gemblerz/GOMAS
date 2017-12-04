@@ -287,6 +287,26 @@ class Agent(threading.Thread):
         return None
 
     """
+           Check the goal tree recursively and update KB if it is active.
+       """
+
+    def check_goal_active(self, goal):
+        if goal is not None:
+            if goal.can_be_active():
+                print('뭐 좀 찍어볼까?????')
+                self.knowledge[goal.name].update({'is': 'active'})
+                print(goal.name)
+                print(self.knowledge[goal.name]['is'])
+            for subgoal in goal.subgoals:
+                if subgoal.can_be_active():
+                    print('뭐 좀 찍어볼까?????')
+                    self.knowledge[subgoal.name].update({'is': 'active'})
+                    print(subgoal.name)
+                    print(self.knowledge[subgoal.name]['is'])
+                    self.check_goal_active(subgoal)
+        return None
+
+    """
         Check the goal tree recursively and update KB if it is achieved.
     """
 
@@ -370,7 +390,8 @@ class Agent(threading.Thread):
                                     list_actions.append((action, task))
                                     break
                             else:
-                                return None, None
+                                continue
+                                #return None, None
 
                         elif task.state == 'Active':
                             return None, None
@@ -480,6 +501,10 @@ class Agent(threading.Thread):
             # check every goal whether now achieved.
             for goal in self.goals:
                 self.check_goal_achieved(goal)
+
+            # # check every goal whether now active.
+            # for goal in self.goals:
+            #     self.check_goal_active(goal)
 
             # Reason next action
             selected_action, selected_task = self.next_action(self.goals, self.knowledge, self.state.state)
