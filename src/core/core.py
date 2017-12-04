@@ -1100,7 +1100,7 @@ class Core(object):
             json_string = json.dumps(data, cls=PythonObjectEncoder)
             self.broadcast(json_string)
 
-            if minerals >= 1000:  # End option <- Should be delete
+            if minerals >= 5000:  # End option <- Should be delete
 
                 # Should be delete! Cause when the goal is achieved, the agent destroy itself.
                 for probe in self.threads_agents:
