@@ -50,7 +50,7 @@ class Core(object):
             logger.error("Sorry, we cannot start on your OS.")
 
         # Communicator between the core and agents.
-        self.comm_agents = Communicator(core=True)
+        self.comm_agents = Communicator(topic='core')
 
         # Set the Proxy and Agents Threads.
         self.thread_proxy = threading.Thread(target=proxy)
