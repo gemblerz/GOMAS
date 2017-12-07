@@ -120,9 +120,32 @@ class Goal(object):
             return self, self.tasks
         else:
             for subgoal in self.subgoals:
-                if subgoal.goal_state != GOAL_STATE_ACHIEVED and subgoal.goal_state != GOAL_STATE_FAILED:
+                if subgoal.goal_state != GOAL_STATE_ACHIEVED and subgoal.goal_state != GOAL_STATE_FAILED and subgoal.goal_state != GOAL_STATE_ACTIVE:
                     return subgoal._get_leaf_goal_and_tasks()
             return self, self.tasks
+
+            # check the goal is active
+
+    def can_be_active(self):
+
+        # check subgoals
+        for subgoal in self.subgoals:
+            if not subgoal.can_be_active():
+                # print('>>', self.name, 'CAN NOT be active yet >>', self.goal_state)
+                return False
+
+        is_active = True
+        for task in self.tasks:
+            if task.state == 'Ready':
+                is_active = False
+                break
+
+        if is_active is False:
+            return False
+
+        self.goal_state = 'active'
+        # print('>>', self.name, 'CAN be active now >>', self.goal_state)
+        return True
 
     # receive the agent's knowledge to check end condition
     def can_be_achieved(self):
@@ -130,16 +153,17 @@ class Goal(object):
         #check subgoals
         for subgoal in self.subgoals:
             if not subgoal.can_be_achieved():
-                print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
+                #print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
 
         #check task
         for task in self.tasks:
             if task.state != 'Done':
-                print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
+                #print('>>', self.name, 'CAN NOT be achieved yet >>', self.goal_state)
                 return False
+
         self.goal_state = 'achieved'
-        print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
+        #print('>>', self.name, 'CAN be achieved now >>', self.goal_state)
         return True
 
 

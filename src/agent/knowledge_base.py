@@ -8,16 +8,16 @@
 """
 
 """
-    type: dict[subject][verb][value]    e.g., knowledge[minerals][gathered]=100
-    
-    The Knowledge Base must be the nested dictionary.
+    type: dict[subject][verb][value]
+    Nested Dictionary
 """
 
 class Knowledge(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
 
-    # override dictionary update method.
+    # override
+
     def update(self, *args, **kwargs):
         if args:
             if len(args) > 1:
@@ -28,8 +28,8 @@ class Knowledge(dict):
                 if subject in self:
                     # for nested dict
                     for verb in other[subject]:
-                        if verb == 'ping': # if the verb is ping, just extend ping list.
-                            self[subject][verb].extend(other[subject][verb])
+                        if verb == 'ping':
+                            self[subject][verb] = set(self[subject][verb]) | set(other[subject][verb])
                         else:
                             self[subject][verb] = other[subject][verb]
                 else:
@@ -38,8 +38,8 @@ class Knowledge(dict):
             if subject in self:
                 # for nested dict
                 for verb in kwargs[subject]:
-                    if verb == 'ping': # if the verb is ping, just extend ping list.
-                        self[subject][verb].extend(kwargs[subject][verb])
+                    if verb == 'ping':
+                        self[subject][verb] = set(self[subject][verb]) | set(kwargs[subject][verb])
                     else:
                         self[subject][verb] = kwargs[subject][verb]
             else:
