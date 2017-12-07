@@ -158,18 +158,6 @@ class Agent(threading.Thread):
             self.knowledge.update(json.loads(message, object_hook=as_python_object))
 
     """
-    def json_to_knowledge(self, message):
-        json_msg = json.loads(message)
-        has_minerals = json_msg["has_minerals"]
-        food_cap = json_msg["food_cap"]
-        food_used = json_msg["food_used"]
-        probe = json_msg["probe"]  #probe dictionary
-        minerals = json_msg["minerals"] #mineral dictionary
-        nexus = json_msg["nexus"] #nexus dictionary
-        self.knowledge.append(Knowledge('type1', 'has_minerals', has_minerals))
-    """
-
-    """
         Change msg(str) to Knowledge
     """
 
