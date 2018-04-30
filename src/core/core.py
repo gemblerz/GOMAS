@@ -18,7 +18,7 @@ from goal import Goal, create_goal_set
 from sc2_comm import sc2
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from s2clientprotocol import raw_pb2 as raw_pb
-
+  
 from utils.communicator import Communicator, proxy
 
 from google.protobuf import json_format
