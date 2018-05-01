@@ -1,11 +1,11 @@
 from rmq import RmqSubscriber
+import time
 
-def callback(ch, method, properties, body):
-    print(body)
+ear = RmqSubscriber.default('*')
 
 try:
-    with RmqSubscriber() as sub:
-        sub.set_callback('log', callback)
-        sub.begin_subscribe()
-except KeyboardInterrupt:
-    pass
+    while True:
+        print(ear.read())
+        time.sleep(1)
+except:
+    ear.close()

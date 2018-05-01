@@ -1,11 +1,13 @@
 import pika
 import time
-from threading import Thread
+from collections import deque
+from threading import Thread, Event
 
 HOST = 'amqp://localhost'
 EXCHANGE = 'goras_exchange'
 
-class RmqInterface(object):
+
+class _RmqInterface(object):
     def __init__(self, host=HOST, exchange=EXCHANGE):
         self.parameters = pika.URLParameters(host)
         self.exchange = exchange
@@ -16,7 +18,7 @@ class RmqInterface(object):
 
     def __exit__(self, type, value, traceback):
         self._disconnect()
-        
+
     def _connect(self):
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
@@ -43,7 +45,7 @@ class RmqInterface(object):
                     body=body)
             except pika.exceptions.ConnectionClosed:
                 self._connect()
-            except Exception as ex:
+            except Exception:
                 if self.channel.is_open:
                     self.channel.close()
                 if self.connection.is_open:
@@ -54,8 +56,7 @@ class RmqInterface(object):
     def close(self):
         self._disconnect()
 
-    def subscribe(self, routing_key, callback):
-        self.callback = callback
+    def begin_subscribe(self, routing_key):
         self.queue = self.channel.queue_declare(
             exclusive=True,
             arguments={'x-max-length': 100}
@@ -66,31 +67,56 @@ class RmqInterface(object):
             queue=self.queue,
             routing_key=routing_key
         )
-        self.channel.basic_consume(
-            self.callback,
-            queue=self.queue,
-            no_ack=True
-        )
+        return self.queue
 
 
 class RmqPublisher(object):
     def __init__(self, host=HOST, exchange=EXCHANGE):
-        self.publisher = RmqInterface(host, exchange)
+        self.publisher = _RmqInterface(host, exchange)
 
     def send(self, who, message):
         self.publisher.publish(who, message)
 
+    @classmethod
+    def default(cls):
+        return cls(host=HOST, exchange=EXCHANGE)
+
 
 class RmqSubscriber(Thread):
-    def __init__(self, host=HOST, exchange=EXCHANGE):
+    def __init__(self, host=HOST, exchange=EXCHANGE, what_to_subscribe='*'):
+        super().__init__()
         self.host = host
         self.exchange = exchange
+        self.what_to_subscribe = what_to_subscribe
+        self.memory = deque(maxlen=1000)
+        self.time_to_exit = Event()
+        self.time_to_exit.clear()
+        self.start()
 
-    def _callback(self, channel, method, properties, body):
-        print(body)
+    @classmethod
+    def default(cls, what_to_hear):
+        return cls(host=HOST, exchange=EXCHANGE, what_to_subscribe=what_to_hear)
+
+    def close(self):
+        self.time_to_exit.set()
+        self.join()
+
+    def read(self):
+        try:
+            return self.memory.popleft()
+        except Exception:
+            return None
 
     def run(self):
-        try:
-            with RmqInterface(self.host, self.exchange) as rmq:
-        self.channel.start_consuming()
-
+        while not self.time_to_exit.is_set():
+            try:
+                with _RmqInterface(self.host, self.exchange) as rmq:
+                    queue = rmq.begin_subscribe(self.what_to_subscribe)
+                    while not self.time_to_exit.is_set():
+                        method_frame, header_frame, body = rmq.channel.basic_get(queue)
+                        if method_frame:
+                            self.memory.append((header_frame.timestamp, body))
+                            rmq.channel.basic_ack(method_frame.delivery_tag)
+                        time.sleep(0.2)
+            except Exception:
+                pass
