@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message GorasSentence {
+    required int32 id = 1;
+    required string speaker = 2;
+    required float when = 3;
+    required string to_who = 4;
+    oneof content {
+        GorasQuery query = 5;
+        gorasAck ack = 6;
+        GorasInform inform = 7;
+    }
+}
+
+message GorasQuery {
+    
+}

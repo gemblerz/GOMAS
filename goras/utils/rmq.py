@@ -74,7 +74,7 @@ class RmqPublisher(object):
     def __init__(self, host=HOST, exchange=EXCHANGE):
         self.publisher = _RmqInterface(host, exchange)
 
-    def send(self, who, message):
+    def say(self, who, message):
         self.publisher.publish(who, message)
 
     @classmethod
@@ -101,7 +101,7 @@ class RmqSubscriber(Thread):
         self.time_to_exit.set()
         self.join()
 
-    def read(self):
+    def hear(self):
         try:
             return self.memory.popleft()
         except Exception:
