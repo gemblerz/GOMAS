@@ -114,8 +114,6 @@ class Core(object):
             map_info.map_path = self.map_path
             create_game = sc_pb.RequestCreateGame(local_map=map_info)
             create_game.player_setup.add(type=1)
-            # create_game.player_setup.add(type=2)
-
             create_game.realtime = True
 
             # send Request

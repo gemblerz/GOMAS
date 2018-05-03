@@ -1,17 +1,33 @@
 syntax = "proto3";
 
 message GorasSentence {
-    required int32 id = 1;
-    required string speaker = 2;
-    required float when = 3;
-    required string to_who = 4;
+    int32 id = 1;
+    string speaker = 2;
+    float when = 3;
+    string to_who = 4;
     oneof content {
         GorasQuery query = 5;
-        gorasAck ack = 6;
+        GorasAck ack = 6;
         GorasInform inform = 7;
+        GorasCommand command = 8;
     }
 }
 
 message GorasQuery {
-    
+    string question = 1;
+}
+
+message GorasAck {
+    int32 ref_id = 1;
+    string comment = 2;
+}
+
+message GorasInform {
+    string content = 1;
+    string subject = 2;
+}
+
+message GorasCommand {
+    string subject = 1;
+    string action = 2;
 }

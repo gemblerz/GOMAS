@@ -3,13 +3,27 @@ import websocket
 from agent import GorasAgent
 from utils.rmq import RmqPublisher, RmqSubscriber
 from s2clientprotocol import sc2api_pb2 as sc_pb
+import utils.goras_message_pb2 as msg_pb
+
+
+# Interpretation functions
+def create_game(map_path):
+    map_info = sc_pb.LocalMap()
+    map_info.map_path = map_path
+    create_game = sc_pb.RequestCreateGame(local_map=map_info)
+    create_game.player_setup.add(type=1)
+    create_game.realtime = True
+    return create_game
+
+dict_words = {
+    'create_game': create_game,
+}
+
 
 class Sc2Agent(GorasAgent):
     def __init__(self):
-        super().__init__()
+        super().__init__(what_to_hear='sim')
         self.conn = None
-        self.mouth = RmqPublisher.default()
-        self.ear = RmqSubscriber.default(what_to_subscribe='sim')
         self.is_connected = False
 
     def _open(self, address='127.0.0.1', port=5000):
@@ -17,8 +31,10 @@ class Sc2Agent(GorasAgent):
             self.conn = websocket.create_connection("ws://%s:%s/sc2api" % (address, port), timeout=60)
             self.is_connected = self.conn
             self.mouth.say('log', 'StarCraft2 is connected')
+            return True
         except Exception as ex:
             self.mouth.say('log', 'Failed to launch StarCraft2')
+            return False
 
     def _close(self):
         if self.is_connected:
@@ -35,8 +51,19 @@ class Sc2Agent(GorasAgent):
             return self.read()
 
     def run(self):
+        #self._open()
+
         while not self.time_to_exit.is_set():
-            message = self.ear.hear()
+            message = self.ears.hear()
             if message is not None:
-                response = self._interact(message)
-                self.mouth.say(to_agent, response_message)
+                sentence = self.interpret(message)
+                print(sentence)
+                #response = self._interact(message)
+                #self.mouth.say(to_agent, response_message)
+
+s = Sc2Agent()
+try:
+    s.run()
+except:
+    pass
+s._close()

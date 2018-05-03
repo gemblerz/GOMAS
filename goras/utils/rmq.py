@@ -59,7 +59,7 @@ class _RmqInterface(object):
     def begin_subscribe(self, routing_key):
         self.queue = self.channel.queue_declare(
             exclusive=True,
-            arguments={'x-max-length': 100}
+            #arguments={'x-max-length': 256}
         ).method.queue
 
         self.channel.queue_bind(
@@ -73,6 +73,9 @@ class _RmqInterface(object):
 class RmqPublisher(object):
     def __init__(self, host=HOST, exchange=EXCHANGE):
         self.publisher = _RmqInterface(host, exchange)
+
+    def close(self):
+        self.publisher.close()
 
     def say(self, who, message):
         self.publisher.publish(who, message)
@@ -115,8 +118,9 @@ class RmqSubscriber(Thread):
                     while not self.time_to_exit.is_set():
                         method_frame, header_frame, body = rmq.channel.basic_get(queue)
                         if method_frame:
-                            self.memory.append((header_frame.timestamp, body))
+                            self.memory.append(body)
                             rmq.channel.basic_ack(method_frame.delivery_tag)
-                        time.sleep(0.2)
+                        else:
+                            time.sleep(0.2)
             except Exception:
                 pass
