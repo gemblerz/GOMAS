@@ -24,6 +24,11 @@ class GorasAgent(Thread):
             self.mouth.close()
         self.join()
 
+    def create_sentence_inform(self, **kwargs):
+        inform = msg_pb.GorasInform(**kwargs)
+        sentence = msg_pb.GorasSentence(inform=inform)
+        return sentence.SerializeToString()
+
     def interpret(self, message):
         interpreted = msg_pb.GorasSentence()
         interpreted.ParseFromString(message)

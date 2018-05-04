@@ -10,15 +10,13 @@ class TestAgent(GorasAgent):
     def run(self):
         count = 0
         while not self.time_to_exit.is_set():
-            query = msg_pb.GorasQuery(question='create_game')
-            sentence = msg_pb.GorasSentence(id=count, speaker='testagent', query=query)
+            query = msg_pb.GorasCommand(action='create_game')
+            sentence = msg_pb.GorasSentence(id=count, speaker='testagent', command=query)
             print(sentence)
             self.mouth.say('sim', sentence.SerializeToString())
             a = input("wait")
             print(sentence)
-            count += 1
-            if count >= 1000:
-                return
+            break
             time.sleep(1)
 
 test = TestAgent()

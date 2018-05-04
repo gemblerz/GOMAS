@@ -26,11 +26,3 @@ class GorasLogger(GorasAgent):
                     # log.write(formatted)
                 else:
                     time.sleep(0.1)
-
-logger = GorasLogger()
-try:
-    logger.start()
-    logger.join()
-except:
-    pass
-logger.terminate()

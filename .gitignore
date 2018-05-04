@@ -102,3 +102,6 @@ ENV/
 
 # PyCharm Env
 .idea/
+
+# Mac
+.DS_Store
