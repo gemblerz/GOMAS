@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='goras_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x13goras_message.proto\"\xcf\x01\n\rGorasSentence\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0f\n\x07speaker\x18\x02 \x01(\t\x12\x0c\n\x04when\x18\x03 \x01(\x02\x12\x0e\n\x06to_who\x18\x04 \x01(\t\x12\x1c\n\x05query\x18\x05 \x01(\x0b\x32\x0b.GorasQueryH\x00\x12\x18\n\x03\x61\x63k\x18\x06 \x01(\x0b\x32\t.GorasAckH\x00\x12\x1e\n\x06inform\x18\x07 \x01(\x0b\x32\x0c.GorasInformH\x00\x12 \n\x07\x63ommand\x18\x08 \x01(\x0b\x32\r.GorasCommandH\x00\x42\t\n\x07\x63ontent\"\x1e\n\nGorasQuery\x12\x10\n\x08question\x18\x01 \x01(\t\"+\n\x08GorasAck\x12\x0e\n\x06ref_id\x18\x01 \x01(\x05\x12\x0f\n\x07\x63omment\x18\x02 \x01(\t\"/\n\x0bGorasInform\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\x12\x0f\n\x07subject\x18\x02 \x01(\t\"/\n\x0cGorasCommand\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x0e\n\x06\x61\x63tion\x18\x02 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\x13goras_message.proto\"\xcf\x01\n\rGorasSentence\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0f\n\x07speaker\x18\x02 \x01(\t\x12\x0c\n\x04when\x18\x03 \x01(\x01\x12\x0e\n\x06to_who\x18\x04 \x01(\t\x12\x1c\n\x05query\x18\x05 \x01(\x0b\x32\x0b.GorasQueryH\x00\x12\x18\n\x03\x61\x63k\x18\x06 \x01(\x0b\x32\t.GorasAckH\x00\x12\x1e\n\x06inform\x18\x07 \x01(\x0b\x32\x0c.GorasInformH\x00\x12 \n\x07\x63ommand\x18\x08 \x01(\x0b\x32\r.GorasCommandH\x00\x42\t\n\x07\x63ontent\"\x1e\n\nGorasQuery\x12\x10\n\x08question\x18\x01 \x01(\t\"+\n\x08GorasAck\x12\x0e\n\x06ref_id\x18\x01 \x01(\x05\x12\x0f\n\x07\x63omment\x18\x02 \x01(\t\"O\n\x0bGorasInform\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x0c\n\x04verb\x18\x02 \x01(\t\x12\x0e\n\x06object\x18\x03 \x01(\t\x12\x11\n\tadjective\x18\x04 \x01(\t\"/\n\x0cGorasCommand\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x0e\n\x06\x61\x63tion\x18\x02 \x01(\tb\x06proto3')
 )
 
 
@@ -48,7 +48,7 @@ _GORASSENTENCE = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='when', full_name='GorasSentence.when', index=2,
-      number=3, type=2, cpp_type=6, label=1,
+      number=3, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -185,15 +185,29 @@ _GORASINFORM = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='content', full_name='GorasInform.content', index=0,
+      name='subject', full_name='GorasInform.subject', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='subject', full_name='GorasInform.subject', index=1,
+      name='verb', full_name='GorasInform.verb', index=1,
       number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='object', full_name='GorasInform.object', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='adjective', full_name='GorasInform.adjective', index=3,
+      number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -211,7 +225,7 @@ _GORASINFORM = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=310,
-  serialized_end=357,
+  serialized_end=389,
 )
 
 
@@ -248,8 +262,8 @@ _GORASCOMMAND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=359,
-  serialized_end=406,
+  serialized_start=391,
+  serialized_end=438,
 )
 
 _GORASSENTENCE.fields_by_name['query'].message_type = _GORASQUERY

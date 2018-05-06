@@ -50,4 +50,15 @@ class GorasManager(object):
         pass
 
     def run(self):
-        pass
+        input('Press Enter when ready')
+
+        # query = msg_pb.GorasCommand(action='create_game')
+        # sentence = msg_pb.GorasSentence(id=count, speaker='testagent', command=query)
+        # print(sentence)
+        # self.mouth.say('sim', sentence.SerializeToString())
+
+        # interface_options = sc_pb.InterfaceOptions(raw=True, score=True)
+        # join_game = sc_pb.RequestJoinGame(race=3, options=interface_options)
+
+        # # send Request
+        # print(self.comm_sc2.send(join_game=join_game))

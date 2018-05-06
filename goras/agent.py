@@ -1,4 +1,5 @@
 from threading import Thread, Event
+from time import time
 
 from utils.rmq import RmqSubscriber, RmqPublisher
 import utils.goras_message_pb2 as msg_pb
@@ -24,15 +25,29 @@ class GorasAgent(Thread):
             self.mouth.close()
         self.join()
 
-    def create_sentence_inform(self, **kwargs):
-        inform = msg_pb.GorasInform(**kwargs)
-        sentence = msg_pb.GorasSentence(inform=inform)
-        return sentence.SerializeToString()
+    def create_inform(self, **kwargs):
+        return msg_pb.GorasInform(**kwargs)
 
-    def interpret(self, message):
-        interpreted = msg_pb.GorasSentence()
-        interpreted.ParseFromString(message)
-        return interpreted
+    def hear(self):
+        if self.ears is None:
+            return None
+        message = self.ears.hear()
+        if message is not None:
+            interpreted = msg_pb.GorasSentence()
+            interpreted.ParseFromString(message)
+            return interpreted
+        else:
+            return None
+
+    def say(self, who, message):
+        if self.mouth is None:
+            return None
+        if isinstance(message, msg_pb.GorasInform):
+            sentence = msg_pb.GorasSentence(when=time(), inform=message)
+        elif isinstance(message, msg_pb.GorasCommand):
+            sentence = msg_pb.GorasSentence(when=time(), command=message)
+        if sentence is not None:
+            self.mouth.say(who, sentence.SerializeToString())
 
     def run(self):
         raise NotImplemented('run method must exist')

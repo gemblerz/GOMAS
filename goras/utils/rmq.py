@@ -22,13 +22,16 @@ class _RmqInterface(object):
     def _connect(self):
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
-        self.channel.exchange_declare(self.exchange, exchange_type='fanout', durable=True)
+        self.channel.exchange_declare(self.exchange, exchange_type='direct', durable=True)
 
     def _disconnect(self):
-        if self.channel.is_open:
-            self.channel.close()
-        if self.connection.is_open:
-            self.connection.close()
+        try:
+            if self.channel.is_open:
+                self.channel.close()        
+            if self.connection.is_open:
+                self.connection.close()
+        except pika.exceptions.ConnectionClosed:
+            pass
 
     def publish(self, routing_key, body, retry=2):
         properties = pika.BasicProperties(

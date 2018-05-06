@@ -11,13 +11,12 @@ class TestAgent(GorasAgent):
         count = 0
         while not self.time_to_exit.is_set():
             query = msg_pb.GorasCommand(action='create_game')
-            sentence = msg_pb.GorasSentence(id=count, speaker='testagent', command=query)
-            print(sentence)
-            self.mouth.say('sim', sentence.SerializeToString())
+            print(query)
+            self.say('sim', query)
+            query2 = msg_pb.GorasCommand(action='hell')
+            self.say('log', query2)
             a = input("wait")
-            print(sentence)
             break
-            time.sleep(1)
 
 test = TestAgent()
 try:

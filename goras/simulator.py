@@ -1,3 +1,4 @@
+import time
 import websocket
 import subprocess
 import os
@@ -10,16 +11,21 @@ import utils.goras_message_pb2 as msg_pb
 
 
 # Interpretation functions
-def create_game():
+def req_create_game():
     map_info = sc_pb.LocalMap()
     map_info.map_path = goras_maps[0]
     create_game = sc_pb.RequestCreateGame(local_map=map_info)
     create_game.player_setup.add(type=1)
     create_game.realtime = True
-    return {'create_game': create_game}
+    return sc_pb.Request(create_game=create_game)
+
+def res_create_game(sc_message):
+    response = sc_pb.Response()
+    response.ParseFromString(sc_message)
+    return response
 
 sc_actions = {
-    'create_game': create_game,
+    'create_game': (req_create_game, res_create_game),
 }
 
 
@@ -37,10 +43,10 @@ class Sc2Agent(GorasAgent):
         try:
             self.conn = websocket.create_connection("ws://%s:%s/sc2api" % (self.address, self.port), timeout=60)
             self.is_connected = self.conn
-            self.mouth.say('log', self.create_sentence_inform(content='StarCraft2 is connected'))
+            self.say('log', self.create_inform(subject='simulator', verb='starts'))
             return True
         except Exception as ex:
-            self.mouth.say('log', self.create_sentence_inform(content='Failed to connect StarCraft2'))
+            self.say('log', self.create_inform(subject='simulator', verb='not connect', object='StarCraft2'))
             return False
 
     def terminate(self):
@@ -63,31 +69,36 @@ class Sc2Agent(GorasAgent):
             if error_code == 0:
                 self.pid = self._get_sc2_pid()
 
-    def _interact(self, **kwargs):
-        request = sc_pb.Request(**kwargs)
+    def _interact(self, request):
         request_str = request.SerializeToString()
         if self.is_connected:
             self.conn.send(request_str)
             response_str = self.conn.recv()
             response = sc_pb.Response()
             response.ParseFromString(response_str)
-            return self.read()
+            return response
 
     def run(self):
         self._launch_simulator()
-        self._open()
+        for i in range(5):
+            if self._open() is False:
+                self.say('log', self.create_inform(subject='simulator', verb='retries'))
+                time.sleep(5)
+            else:
+                break
 
         while not self.time_to_exit.is_set():
-            message = self.ears.hear()
-            if message is not None:
-                sentence = self.interpret(message)
+            sentence = self.hear()
+            if sentence is not None:
                 if sentence.HasField('command'):
                     command = sentence.command.action
                     if command in sc_actions:
-                        function = sc_actions[command]
-                        sc_command = function()
-                        print(sc_command)
-                        # response = self._interact(sc_command)
-                #print(sentence)
-                #response = self._interact(message)
-                #self.mouth.say(to_agent, response_message)
+                        func_req, fucn_res = sc_actions[command]
+                        sc_command = func_req()
+                        response = self._interact(sc_command)
+                        print(response)
+                        # self.say(
+                        #     who=sentence.speaker,
+                        #     message=response)
+            else:
+                time.sleep(0.1)
