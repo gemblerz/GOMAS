@@ -14,17 +14,10 @@ class GorasLogger(GorasAgent):
         super().terminate()
 
     def run(self):
-        context = Tk()
-        label_text = StringVar()
-        label = Label(context, textvariable=label_text)
-        label.pack()
-
         with open(self.history_path, 'w') as log:
             while not self.time_to_exit.is_set():
                 sentence = self.hear()
                 if sentence is not None:
-                    print('fuck')
-                    print(sentence)
                     sender = sentence.speaker
                     when = sentence.when
                     if sentence.HasField('inform'):
@@ -34,9 +27,6 @@ class GorasLogger(GorasAgent):
                             sentence.inform.verb,
                             sentence.inform.object)
                     log.write(formatted)
-                    label_text.set(formatted)
                     log.flush()
                 else:
                     time.sleep(0.1)
-                context.update_idletasks()
-                context.update()

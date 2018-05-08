@@ -13,7 +13,8 @@ import utils.goras_message_pb2 as msg_pb
 # Interpretation functions
 def req_create_game():
     map_info = sc_pb.LocalMap()
-    map_info.map_path = goras_maps[0]
+    the_map = [x for x in goras_maps if 'GG' in x]
+    map_info.map_path = the_map[0]
     create_game = sc_pb.RequestCreateGame(local_map=map_info)
     create_game.player_setup.add(type=1)
     create_game.realtime = True
@@ -24,8 +25,19 @@ def res_create_game(sc_message):
     response.ParseFromString(sc_message)
     return response
 
+def req_join_game():
+    interface_options = sc_pb.InterfaceOptions(raw=True, score=True)
+    join_game = sc_pb.RequestJoinGame(race=3, options=interface_options)
+    return sc_pb.Request(join_game=join_game)
+
+def res_join_game(sc_message):
+    response = sc_pb.Response()
+    response.ParseFromString(sc_message)
+    return response
+
 sc_actions = {
     'create_game': (req_create_game, res_create_game),
+    'join_game': (req_join_game, res_join_game),
 }
 
 

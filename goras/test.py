@@ -13,8 +13,9 @@ class TestAgent(GorasAgent):
             query = msg_pb.GorasCommand(action='create_game')
             print(query)
             self.say('sim', query)
-            query2 = msg_pb.GorasCommand(action='hell')
-            self.say('log', query2)
+            a = input("wait")
+            query2 = msg_pb.GorasCommand(action='join_game')
+            self.say('sim', query2)
             a = input("wait")
             break
 
