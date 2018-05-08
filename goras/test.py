@@ -10,12 +10,9 @@ class TestAgent(GorasAgent):
     def run(self):
         count = 0
         while not self.time_to_exit.is_set():
-            query = msg_pb.GorasCommand(action='create_game')
+            query = msg_pb.GorasCommand(action='start_game')
             print(query)
             self.say('sim', query)
-            a = input("wait")
-            query2 = msg_pb.GorasCommand(action='join_game')
-            self.say('sim', query2)
             a = input("wait")
             break
 

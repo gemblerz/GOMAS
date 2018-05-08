@@ -39,12 +39,12 @@ class Core(object):
             self.launcher_path = "/Applications/StarCraft\ II/Support/SC2Switcher.app/Contents/MacOS/SC2Switcher\
                                   --listen 127.0.0.1\
                                   --port %s" % self.port
-            self.map_path = os.getcwd() + '/../../resource/Maps/GorasMap_GG.SC2Map'
+            self.map_path = os.getcwd() + '/../resources/maps/GorasMap.SC2Map'
 
         elif sys.platform == "win32":  # Windows
 
             self.launcher_path = 'C:\\"Program Files (x86)"\\"StarCraft II"\\"Support"\SC2Switcher.exe --listen 127.0.0.1 --port %s"' % self.port
-            self.map_path = os.getcwd() + '/../../resource/Maps/GorasMap.SC2Map'
+            self.map_path = os.getcwd() + '../resources/maps/GorasMap.SC2Map'
 
         else:
             logger.error("Sorry, we cannot start on your OS.")
@@ -69,7 +69,7 @@ class Core(object):
 
         # execute SC2 client.
         try:
-            os.system(self.launcher_path)
+            #os.system(self.launcher_path)
 
             time.sleep(5)  # need time to connect after launch app.
 

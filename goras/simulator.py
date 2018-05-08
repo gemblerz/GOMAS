@@ -13,7 +13,7 @@ import utils.goras_message_pb2 as msg_pb
 # Interpretation functions
 def req_create_game():
     map_info = sc_pb.LocalMap()
-    the_map = [x for x in goras_maps if 'GG' in x]
+    the_map = [x for x in goras_maps if 'GorasMap.SC2Map' in x]
     map_info.map_path = the_map[0]
     create_game = sc_pb.RequestCreateGame(local_map=map_info)
     create_game.player_setup.add(type=1)
@@ -35,9 +35,21 @@ def res_join_game(sc_message):
     response.ParseFromString(sc_message)
     return response
 
+def req_status_game():
+    observation = sc_pb.RequestObservation()
+    return sc_pb.Request(observation=observation)
+
+def res_status_game(sc_message):
+    response = sc_pb.Response()
+    response.ParseFromString(sc_message)
+    player = response.observation.player_common
+    units = response.observation.raw_data.units
+    return player, units
+
 sc_actions = {
     'create_game': (req_create_game, res_create_game),
     'join_game': (req_join_game, res_join_game),
+    'status_game': (req_status_game, res_status_game),
 }
 
 
@@ -91,6 +103,7 @@ class Sc2Agent(GorasAgent):
             return response
 
     def run(self):
+        # Launch and connect
         self._launch_simulator()
         for i in range(5):
             if self._open() is False:
@@ -104,13 +117,49 @@ class Sc2Agent(GorasAgent):
             if sentence is not None:
                 if sentence.HasField('command'):
                     command = sentence.command.action
+                    if 'start_game' in command:
+                        func_req, func_res = sc_actions['create_game']
+                        sc_command = func_req()
+                        response = self._interact(sc_command)
+
+                        func_req, func_res = sc_actions['join_game']
+                        sc_command = func_req()
+                        response = self._interact(sc_command)
+                        break
+            time.sleep(1)
+
+        status_update_period = 1  # in second
+        last_updated = time.time()
+        while not self.time_to_exit.is_set():
+            # Process all requests first
+            while True:
+                sentence = self.hear()
+                if sentence is None:
+                    break
+                if sentence.HasField('command'):
+                    command = sentence.command.action
                     if command in sc_actions:
-                        func_req, fucn_res = sc_actions[command]
+                        func_req, func_res = sc_actions[command]
                         sc_command = func_req()
                         response = self._interact(sc_command)
                         print(response)
                         # self.say(
                         #     who=sentence.speaker,
                         #     message=response)
-            else:
-                time.sleep(0.1)
+            
+            # Update status
+            current_time = time.time()
+            if (current_time - last_updated) > status_update_period:
+                func_req, func_res = sc_actions['status_game']
+                sc_command = func_req()
+                response = self._interact(sc_command)
+                if response.observation.observation.HasField('player_common'):
+                    player = response.observation.observation.player_common
+                    print(player)
+                if response.observation.observation.HasField('raw_data'):
+                    units = response.observation.observation.raw_data.units
+                    for unit in units:
+                        if unit.owner == 1:
+                            print(unit.unit_type, unit.is_selected)
+
+            time.sleep(0.1)
