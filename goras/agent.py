@@ -28,6 +28,11 @@ class GorasAgent(Thread):
     def create_inform(self, **kwargs):
         return msg_pb.GorasInform(**kwargs)
 
+    def listen(self, topic):
+        if self.ears is None:
+            return None
+        
+
     def hear(self):
         if self.ears is None:
             return None

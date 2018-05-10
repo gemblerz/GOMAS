@@ -22,7 +22,11 @@ class _RmqInterface(object):
     def _connect(self):
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
-        self.channel.exchange_declare(self.exchange, exchange_type='direct', durable=True)
+        self.channel.exchange_declare(self.exchange, exchange_type='topic', durable=True)
+        self.queue = self.channel.queue_declare(
+            exclusive=True,
+            #arguments={'x-max-length': 256}
+        ).method.queue
 
     def _disconnect(self):
         try:
@@ -60,12 +64,15 @@ class _RmqInterface(object):
         self._disconnect()
 
     def begin_subscribe(self, routing_key):
-        self.queue = self.channel.queue_declare(
-            exclusive=True,
-            #arguments={'x-max-length': 256}
-        ).method.queue
-
         self.channel.queue_bind(
+            exchange=EXCHANGE,
+            queue=self.queue,
+            routing_key=routing_key
+        )
+        return self.queue
+
+    def end_subscribe(self, routing_key):
+        self.channel.queue_unbind(
             exchange=EXCHANGE,
             queue=self.queue,
             routing_key=routing_key

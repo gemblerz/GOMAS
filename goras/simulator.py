@@ -102,6 +102,24 @@ class Sc2Agent(GorasAgent):
             response.ParseFromString(response_str)
             return response
 
+    def _publish_env(self, player):
+        self.say('resources.mineral', self.create_inform(subject='mineral', verb='is', object=str(player.minerals)))
+        self.say('resources.vespene', self.create_inform(subject='vespene', verb='is', object=str(player.vespene)))
+        self.say('resources.food_cap', self.create_inform(subject='food_cap', verb='is', object=str(player.food_cap)))
+        self.say('resources.food_used', self.create_inform(subject='food_used', verb='is', object=str(player.food_used)))
+
+    def _publish_units(self, units):
+        for unit in units:
+            tag = str(unit.tag)
+            position = unit.pos
+            print(tag)
+            self.say('units.' + tag + '.pos.x', self.create_inform(subject='x', verb='is', object=str(unit.pos.x)))
+            self.say('units.' + tag + '.pos.y', self.create_inform(subject='y', verb='is', object=str(unit.pos.y)))
+
+            # print(unit)
+            # print(unit.unit_type, unit.is_selected)
+
+
     def run(self):
         # Launch and connect
         self._launch_simulator()
@@ -128,7 +146,7 @@ class Sc2Agent(GorasAgent):
                         break
             time.sleep(1)
 
-        status_update_period = 1  # in second
+        status_update_period = 3  # in second
         last_updated = time.time()
         while not self.time_to_exit.is_set():
             # Process all requests first
@@ -155,11 +173,10 @@ class Sc2Agent(GorasAgent):
                 response = self._interact(sc_command)
                 if response.observation.observation.HasField('player_common'):
                     player = response.observation.observation.player_common
-                    print(player)
+                    self._publish_env(player)
                 if response.observation.observation.HasField('raw_data'):
                     units = response.observation.observation.raw_data.units
-                    for unit in units:
-                        if unit.owner == 1:
-                            print(unit.unit_type, unit.is_selected)
-
+                    my_units = [unit for unit in units if unit.owner == 1]
+                    self._publish_units(my_units)
+                last_updated = current_time
             time.sleep(0.1)
