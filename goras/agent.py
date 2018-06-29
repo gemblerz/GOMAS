@@ -31,7 +31,6 @@ class GorasAgent(Thread):
     def listen(self, topic):
         if self.ears is None:
             return None
-        
 
     def hear(self):
         if self.ears is None:

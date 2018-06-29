@@ -112,7 +112,7 @@ class Sc2Agent(GorasAgent):
         for unit in units:
             tag = str(unit.tag)
             position = unit.pos
-            print(tag)
+            # print(tag)
             self.say('units.' + tag + '.pos.x', self.create_inform(subject='x', verb='is', object=str(unit.pos.x)))
             self.say('units.' + tag + '.pos.y', self.create_inform(subject='y', verb='is', object=str(unit.pos.y)))
 
@@ -146,7 +146,7 @@ class Sc2Agent(GorasAgent):
                         break
             time.sleep(1)
 
-        status_update_period = 3  # in second
+        status_update_period = 2  # in second
         last_updated = time.time()
         while not self.time_to_exit.is_set():
             # Process all requests first

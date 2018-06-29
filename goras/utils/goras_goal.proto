@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+message GorasGoal {
+    int32 id = 1;
+    string name = 2;
+    oneof goal {
+        GorasMaintenanceGoal maintenance_goal = 3;
+        GorasPerformGoal perform_goal = 4;
+    }
+    int32 parent_goal = 5;
+    repeated int32 child_goals = 6;
+}
+
+message GorasMaintenanceGoal {
+    
+
+}
+
+message GorasPerformGoal {
+    
+}
