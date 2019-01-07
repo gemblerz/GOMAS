@@ -13,7 +13,6 @@ class TestAgent(GorasAgent):
         self.kb = {}
 
     def ingest_belief(self, goras_message):
-
         if goras_message.WhichOneof('content') == 'inform':
             message_inform = goras_message.inform
             if message_inform.verb == 'is':
